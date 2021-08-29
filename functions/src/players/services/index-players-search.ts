@@ -1,7 +1,7 @@
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { Index } from 'meilisearch';
-import { FirestoreInstance } from "../../configuration";
+import { FirestoreInstance } from "../../utils/configuration";
 import { PlayerModel } from "../models/player.model";
 import { SearchPlayerQueryModel } from "../models/search-player-query.model";
 import { PlayerIndex } from "../repository/players.index";

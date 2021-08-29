@@ -3,4 +3,5 @@ export interface PlayerModel {
     email: string;
     uid: string;
     indexedDate?: string | null;
+    addedToChat?: boolean | null;
 }
