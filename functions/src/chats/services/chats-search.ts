@@ -10,18 +10,18 @@ import { ChatsIndex } from "../repository/chat.index";
 
 export const addChatToSearchIndex = functions.firestore
     .document('chats/{id}')
-    .onUpdate(async (snapshot, context) => {
+    .onWrite(async (snapshot, context) => {
         const chatIndex: Index<ChatIndexModel> = await ChatsIndex();
-        const before: ChatModel | null = <ChatModel>snapshot.before.data() ?? null;
-        const after: ChatModel | null = <ChatModel>snapshot.after.data() ?? null;
+        const before: ChatModel | null = <ChatModel>snapshot.before.data() ?? null; // might be null on creating
+        const after: ChatModel | null = <ChatModel>snapshot.after.data() ?? null; // might be null when deleting
 
-        /// dont index if created or deleted
-        if (!before || !after)
+        /// dont index if deleted, only created
+        if (!after)
             return;
 
         /// update index only when participants change
         /// participants stay the same, therefore don't update the index
-        if ((before.participantsUids as Array<string>).length === (after.participantsUids as Array<string>).length)
+        if ((before?.participantsUids as Array<string>).length === (after.participantsUids as Array<string>).length)
             return;
 
         await chatIndex.updateDocuments([{
