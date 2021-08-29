@@ -1,6 +1,6 @@
 import { firestore } from "firebase-admin";
-export interface MessageModel { }
-export interface ChatParticipantModel { uid: string; displayName: string; canSendMessage: boolean };
+import { ChatParticipantModel } from "./chat-participant.model";
+import { MessageModel } from "./message.model";
 
 export interface ChatModel {
     disabled: boolean;
@@ -11,4 +11,5 @@ export interface ChatModel {
     participants: firestore.FieldValue | Array<ChatParticipantModel>;
     participantsUids: firestore.FieldValue | Array<string>;
     participantsCompleted?: boolean;
+    indexedDate?: firestore.Timestamp | firestore.FieldValue | null;
 }

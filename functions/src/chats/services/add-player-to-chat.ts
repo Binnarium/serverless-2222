@@ -3,7 +3,8 @@ import * as functions from "firebase-functions";
 import { PlayerModel } from "../../players/models/player.model";
 import { FirestoreInstance } from "../../utils/configuration";
 import { randomIdGenerator } from "../../utils/random-id-generator";
-import { ChatModel, ChatParticipantModel } from "../model/chatmodel.model";
+import { ChatParticipantModel } from "../model/chat-participant.model";
+import { ChatModel } from "../model/chat.model";
 
 // when a new player is created add it to the players index
 export const addPlayerToChats = functions

@@ -1,16 +1,11 @@
-import * as functions from "firebase-functions";
-import { Index, MeiliSearch } from 'meilisearch';
+import { Index } from 'meilisearch';
+import { MeiliClient } from "../../utils/configuration";
 import { PlayerModel } from "../models/player.model";
-
-const client = new MeiliSearch({
-    host: functions.config().meilisearch.host,
-    apiKey: functions.config().meilisearch.api_key,
-});
 
 export async function PlayerIndex(): Promise<Index<PlayerModel>> {
     try {
-        return await client.getIndex('players');
+        return await MeiliClient.getIndex('players');
     } catch (error) {
-        return await client.createIndex('players', { primaryKey: 'uid' });
+        return await MeiliClient.createIndex('players', { primaryKey: <keyof PlayerModel>'uid' });
     }
 };

@@ -1,0 +1,1 @@
+export interface ChatParticipantModel { uid: string; displayName: string; canSendMessage: boolean };
