@@ -32,7 +32,7 @@ export const obtainClubhouseInformation = functions.firestore
             cityId,
             id,
             clubhouseUrl: updatedClubhouseUrl,
-            name: $('title').first().text().trim(),
+            name: $('title').first().text().split('-')[0].trim(),
             clubhouseId: updatedClubhouseUrl.split('event/')[1],
             uploaderId,
             date: new Date(rawDate),
