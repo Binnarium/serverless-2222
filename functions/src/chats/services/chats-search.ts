@@ -21,7 +21,7 @@ export const addChatToSearchIndex = functions.firestore
 
         /// update index only when participants change
         /// participants stay the same, therefore don't update the index
-        if ((before?.participantsUids as Array<string>).length === (after.participantsUids as Array<string>).length)
+        if ((before?.participantsUids as Array<string>)?.length === (after.participantsUids as Array<string>).length)
             return;
 
         await chatIndex.updateDocuments([{
@@ -51,6 +51,6 @@ export const searchChat = functions.https.onCall(async (data: SearchChatQueryMod
     if ((data.query ?? '').length === 0)
         return null;
 
-    const search = await chatIndex.search(data.query, { cropLength: 10, filter: [[`${<keyof ChatIndexModel>'participantsUids'} = ${data.query}`]] });
+    const search = await chatIndex.search(data.query, { cropLength: 10, filter: [[`${<keyof ChatIndexModel>'participantsUids'} = ${data.playerId}`]] });
     return JSON.stringify(search.hits);
 });

@@ -33,14 +33,14 @@ export const addPlayerToChats = functions
 
         // add player to group chat
         const chatsSnapshot = await FirestoreInstance.collection('chats')
-            .where(<keyof ChatModel>'participantsCompleted', '!=', true)
+            .where(<keyof ChatModel>'participantsCompleted', '==', false)
             .where(<keyof ChatModel>'id', '!=', 'general')
             .limit(1)
             .get();
 
-        const foundGroupChat: ChatModel | null = chatsSnapshot.docs.at(0)?.data() as ChatModel | null ?? null;
 
-        if (!!foundGroupChat) {
+        if (chatsSnapshot.size > 0) {
+            const foundGroupChat: ChatModel = chatsSnapshot.docs.at(0)!.data() as ChatModel;
             /// chat group found, therefore add  player to chat
             // const generalChatDoc = FirestoreInstance.collection('chats').doc('general');
             // batch.update(generalChatDoc, chatParticipant.toMap(false));
