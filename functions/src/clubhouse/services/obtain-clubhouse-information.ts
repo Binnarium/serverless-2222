@@ -20,11 +20,10 @@ export const obtainClubhouseInformation = functions.firestore
         // obtain date from raw html
         const coincidence = /(const dt =).*/.exec(html)?.[0] ?? null;
         const rawDate = coincidence?.split('"')[1] ?? null;
-
         if (!rawDate)
             throw Error('Invalid date');
 
-
+        // update url
         const updatedClubhouseUrl = $('meta[property = "twitter:url"]').attr('content');
         if (!updatedClubhouseUrl)
             throw Error('Invalid clubhouse updated url');
@@ -33,7 +32,7 @@ export const obtainClubhouseInformation = functions.firestore
             cityId,
             id,
             clubhouseUrl: updatedClubhouseUrl,
-            name: $('title').first().text(),
+            name: $('title').first().text().trim(),
             clubhouseId: updatedClubhouseUrl.split('event/')[1],
             uploaderId,
             date: new Date(rawDate),
