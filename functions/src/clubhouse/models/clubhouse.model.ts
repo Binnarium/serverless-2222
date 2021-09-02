@@ -7,6 +7,7 @@ export interface ClubhouseModel {
     name: string;
     cityId: string;
     uploaderId: string;
+    uploaderDisplayName?: string;
     scraped: firestore.FieldValue;
     id: string;
 }

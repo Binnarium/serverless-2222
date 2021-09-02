@@ -23,6 +23,9 @@ export const obtainClubhouseInformation = functions.firestore
         if (!rawDate)
             throw Error('Invalid date');
 
+        const nameCoincidence = /(<em>w\/).*/.exec(html)?.[0] ?? null;
+        const rawName = nameCoincidence?.split(RegExp('((<em>w/)|(</em>))'))[1] ?? null;
+
         // update url
         const updatedClubhouseUrl = $('meta[property = "twitter:url"]').attr('content');
         if (!updatedClubhouseUrl)
@@ -31,6 +34,7 @@ export const obtainClubhouseInformation = functions.firestore
         const clubhouse: ClubhouseModel = {
             cityId,
             id,
+            uploaderDisplayName: rawName?.trim(),
             clubhouseUrl: updatedClubhouseUrl,
             name: $('title').first().text().split('-')[0].trim(),
             clubhouseId: updatedClubhouseUrl.split('event/')[1],
