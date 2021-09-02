@@ -2,6 +2,8 @@ import cheerio from "cheerio";
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import fetch from "node-fetch";
+import { PlayerModel } from "../../players/models/player.model";
+import { UpdateAward, UpdatePlayerMedals } from "../../players/models/update-player-medals.modal";
 import { FirestoreInstance } from "../../utils/configuration";
 import { ClubhouseModel } from "../models/clubhouse.model";
 import { CreatedClubhouseModel } from "../models/created-clubhouse.model";
@@ -23,18 +25,20 @@ export const obtainClubhouseInformation = functions.firestore
         if (!rawDate)
             throw Error('Invalid date');
 
-        const nameCoincidence = /(<em>w\/).*/.exec(html)?.[0] ?? null;
-        const rawName = nameCoincidence?.split(RegExp('((<em>w/)|(</em>))'))[1] ?? null;
-
         // update url
         const updatedClubhouseUrl = $('meta[property = "twitter:url"]').attr('content');
         if (!updatedClubhouseUrl)
             throw Error('Invalid clubhouse updated url');
 
+        /// player doc 
+        const playerDoc = FirestoreInstance.collection('players').doc(uploaderId);
+        const playerSnap = await playerDoc.get();
+        const player: PlayerModel | null = <PlayerModel>playerSnap.data();
+
         const clubhouse: ClubhouseModel = {
             cityId,
             id,
-            uploaderDisplayName: rawName?.trim(),
+            uploaderDisplayName: player?.displayName?.trim(),
             clubhouseUrl: updatedClubhouseUrl,
             name: $('title').first().text().split('-')[0].trim(),
             clubhouseId: updatedClubhouseUrl.split('event/')[1],
@@ -43,9 +47,18 @@ export const obtainClubhouseInformation = functions.firestore
             scraped: firestore.FieldValue.serverTimestamp(),
         };
 
+        const batch = FirestoreInstance.batch();
         // update document data
-        await FirestoreInstance.collection('clubhouse')
-            .doc(clubhouse.id)
-            .update(clubhouse);
+        batch.update(FirestoreInstance.collection('clubhouse').doc(clubhouse.id), clubhouse);
+
+        // update player doc
+        batch.update(playerDoc, <UpdatePlayerMedals>{
+            clubhouseAwards: firestore.FieldValue.arrayUnion(<UpdateAward>{
+                cityId,
+                obtained: true,
+            }),
+        });
+
+        await batch.commit();
     });
 
