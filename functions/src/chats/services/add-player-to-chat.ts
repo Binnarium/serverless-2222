@@ -82,6 +82,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         const chatId = randomIdGenerator(15);
         const newChat: ChatModel = {
             id: chatId,
+            kind: 'CHAT#GROUP',
             disabled: false,
             participants: [{ displayName: player.displayName, uid: player.uid, canSendMessage: true }],
             participantsUids: [player.uid],

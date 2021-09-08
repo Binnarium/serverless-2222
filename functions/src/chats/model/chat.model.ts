@@ -2,7 +2,9 @@ import { firestore } from "firebase-admin";
 import { ChatParticipantModel } from "./chat-participant.model";
 import { MessageModel } from "./message.model";
 
+
 export interface ChatModel {
+    kind: 'CHAT#GROUP' | 'CHAT#GENERAL' | 'CHAT#PERSONAL';
     disabled: boolean;
     id: string;
     name?: string | null;
