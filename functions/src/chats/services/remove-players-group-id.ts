@@ -3,7 +3,7 @@ import { UpdatePlayerGroupModel } from "../../players/models/update-player-group
 import { FirestoreInstance } from "../../utils/configuration";
 import { ChatModel } from "../model/chat.model";
 
-export const removePlayersChatId = functions.firestore
+export const removePlayersGroupId = functions.firestore
     .document('chats/{id}')
     .onDelete(async (snapshot, context) => {
         const batch = FirestoreInstance.batch();
