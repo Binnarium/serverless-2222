@@ -62,7 +62,7 @@ export const searchPlayer = functions.https.onCall(async (data: SearchPlayerQuer
 
     // add filters if available
     if (data.groupId)
-        filter.push([`${<keyof PlayerSearchIndexModel>'chatId'} = ${data.groupId}`]);
+        filter.push([`${<keyof PlayerSearchIndexModel>'groupId'} = ${data.groupId}`]);
 
     const search = await playerIndex.search(data.query, { cropLength: 10, filter });
 
