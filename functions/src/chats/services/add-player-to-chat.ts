@@ -19,18 +19,18 @@ export const addPlayerToChats = functions
     });
 
 // Add player that havent been added to chat cron
-export const addMissingPlayerToChats = functions.pubsub.schedule('* * * * *')
-    .onRun(async (context) => {
-        const unAddedPlayers = await FirestoreInstance.collection('players')
-            .where(<keyof PlayerModel>'addedToChat', '==', <PlayerModel['addedToChat']>false)
-            .limit(2)
-            .get();
+// // export const addMissingPlayerToChats = functions.pubsub.schedule('* * * * *')
+// //     .onRun(async (context) => {
+// //         const unAddedPlayers = await FirestoreInstance.collection('players')
+// //             .where(<keyof PlayerModel>'addedToChat', '==', <PlayerModel['addedToChat']>false)
+// //             .limit(2)
+// //             .get();
 
-        for await (const snapshot of unAddedPlayers.docs) {
-            const player = <PlayerModel>snapshot.data()
-            await AddPlayerToGeneralAndSpecificChat(player);
-        }
-    });
+// //         for await (const snapshot of unAddedPlayers.docs) {
+// //             const player = <PlayerModel>snapshot.data()
+// //             await AddPlayerToGeneralAndSpecificChat(player);
+// //         }
+// //     });
 
 
 /// add player to doc with batch
