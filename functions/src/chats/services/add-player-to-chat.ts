@@ -58,12 +58,12 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         .where(<keyof ChatModel>'id', '!=', 'general')
         .limit(1)
         .get();
-    let playerChatId: null | string = null;
+    let groupId: null | string = null;
 
     /// add player to existing chat, or create new player
     if (chatsSnapshot.docs.length > 0) {
         const foundGroupChat: ChatModel = chatsSnapshot.docs[0].data() as ChatModel;
-        playerChatId = foundGroupChat.id
+        groupId = foundGroupChat.id
         const chatDoc = FirestoreInstance.collection('chats').doc(foundGroupChat.id);
         /// chat group found, therefore add  player to chat
         const limitOfPlayers = 3;
@@ -80,7 +80,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
     } else {
         /// chat group not found, create new
         const chatId = randomIdGenerator(15);
-        playerChatId = chatId;
+        groupId = chatId;
         const newChat: ChatModel = {
             id: chatId,
             kind: 'CHAT#GROUP',
@@ -97,7 +97,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
     }
 
     // update player was added to chats
-    const playerUpdate: UpdatePlayerGroupModel = { addedToChat: true, chatId: playerChatId };
+    const playerUpdate: UpdatePlayerGroupModel = { addedToChat: true, groupId };
 
     batch.update(playerRef, playerUpdate);
 

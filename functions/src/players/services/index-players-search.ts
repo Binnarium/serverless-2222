@@ -11,8 +11,8 @@ export const addPlayerToSearchIndex = functions.firestore
     .document('players/{uid}')
     .onCreate(async (snapshot, context) => {
         const playerIndex = await PlayerIndex();
-        const { displayName, email, uid, chatId } = <PlayerModel>snapshot.data();
-        await playerIndex.addDocuments([{ displayName, email, uid, chatId }]);
+        const { displayName, email, uid, groupId } = <PlayerModel>snapshot.data();
+        await playerIndex.addDocuments([{ displayName, email, uid, groupId }]);
 
         // once indexed update document with indexed time
         await FirestoreInstance.doc(snapshot.ref.path).update({ indexedDate: firestore.FieldValue.serverTimestamp() });
@@ -30,12 +30,12 @@ export const updatePlayerInformationInIndex = functions.firestore
         if ((oldPlayer.uid === newPlayer.uid) ||
             (oldPlayer.email === newPlayer.email) ||
             (oldPlayer.displayName === newPlayer.displayName) ||
-            (oldPlayer.chatId === newPlayer.chatId))
+            (oldPlayer.groupId === newPlayer.groupId))
             return;
         await playerIndex.updateDocuments([{
             displayName: newPlayer.displayName,
             email: newPlayer.email,
-            chatId: newPlayer.chatId,
+            groupId: newPlayer.groupId,
             uid: newPlayer.uid,
         }]);
     });
@@ -61,8 +61,8 @@ export const searchPlayer = functions.https.onCall(async (data: SearchPlayerQuer
     const filter: Array<Array<string>> = [];
 
     // add filters if available
-    if (data.chatId)
-        filter.push([`${<keyof PlayerSearchIndexModel>'chatId'} = ${data.chatId}`]);
+    if (data.groupId)
+        filter.push([`${<keyof PlayerSearchIndexModel>'chatId'} = ${data.groupId}`]);
 
     const search = await playerIndex.search(data.query, { cropLength: 10, filter });
 

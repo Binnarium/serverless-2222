@@ -1,5 +1,5 @@
 
 export interface SearchPlayerQueryModel {
     query?: string | null;
-    chatId?: string | null;
+    groupId?: string | null;
 }

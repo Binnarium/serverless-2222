@@ -12,7 +12,7 @@ export const removePlayersChatId = functions.firestore
         (chat.participantsUids as Array<string>).forEach(uid => {
             // update player was removed from chat
             const playerRef = FirestoreInstance.collection('players').doc(uid);
-            const playerUpdate: UpdatePlayerGroupModel = { addedToChat: false, chatId: null };
+            const playerUpdate: UpdatePlayerGroupModel = { addedToChat: false, groupId: null };
 
             batch.update(playerRef, playerUpdate);
         })
