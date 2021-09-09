@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { PlayerModel } from "../../players/models/player.model";
+import { UpdatePlayerGroupModel } from "../../players/models/update-player-group.model";
 import { FirestoreInstance } from "../../utils/configuration";
 import { randomIdGenerator } from "../../utils/random-id-generator";
 import { ChatParticipantModel } from "../model/chat-participant.model";
@@ -46,8 +47,6 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         participantsUids: firestore.FieldValue.arrayUnion(<string>player.uid),
     };
 
-    // update player was added to chats
-    batch.update(playerRef, <Pick<PlayerModel, 'addedToChat'>>{ addedToChat: true });
 
     // add to general chat
     const generalChatDoc = FirestoreInstance.collection('chats').doc('general');
@@ -59,11 +58,12 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         .where(<keyof ChatModel>'id', '!=', 'general')
         .limit(1)
         .get();
+    let playerChatId: null | string = null;
 
     /// add player to existing chat, or create new player
     if (chatsSnapshot.docs.length > 0) {
         const foundGroupChat: ChatModel = chatsSnapshot.docs[0].data() as ChatModel;
-        console.log(foundGroupChat.id);
+        playerChatId = foundGroupChat.id
         const chatDoc = FirestoreInstance.collection('chats').doc(foundGroupChat.id);
         /// chat group found, therefore add  player to chat
         const limitOfPlayers = 3;
@@ -80,6 +80,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
     } else {
         /// chat group not found, create new
         const chatId = randomIdGenerator(15);
+        playerChatId = chatId;
         const newChat: ChatModel = {
             id: chatId,
             kind: 'CHAT#GROUP',
@@ -94,6 +95,12 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         const newChatDoc = FirestoreInstance.collection('chats').doc(chatId);
         batch.set(newChatDoc, newChat);
     }
+
+    // update player was added to chats
+    const playerUpdate: UpdatePlayerGroupModel = { addedToChat: true, chatId: playerChatId };
+
+    batch.update(playerRef, playerUpdate);
+
     await batch.commit();
 
 }

@@ -1,11 +1,15 @@
 import { Index } from 'meilisearch';
 import { MeiliClient } from "../../utils/configuration";
-import { PlayerModel } from "../models/player.model";
+import { PlayerSearchIndexModel } from '../models/player-search-index.model';
 
-export async function PlayerIndex(): Promise<Index<PlayerModel>> {
+export async function PlayerIndex(): Promise<Index<PlayerSearchIndexModel>> {
     try {
-        return await MeiliClient.getIndex('players');
+        const index = await MeiliClient.getIndex('players');
+        return index
     } catch (error) {
-        return await MeiliClient.createIndex('players', { primaryKey: <keyof PlayerModel>'uid' });
+        const index = await MeiliClient.createIndex('players', { primaryKey: <keyof PlayerSearchIndexModel>'uid' });
+        await index.updateFilterableAttributes(<Array<keyof PlayerSearchIndexModel>>['chatId']);
+        await index.updateSearchableAttributes(<Array<keyof PlayerSearchIndexModel>>['displayName', 'email']);
+        return index
     }
 };
