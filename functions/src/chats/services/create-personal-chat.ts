@@ -16,14 +16,13 @@ export const createPersonalChat = functions.https.onCall(async (data: CreatePers
         // search a chat does not already exists
         const chatsSnapshot = await FirestoreInstance.collection('chats')
             .where(<keyof ChatModel>'kind', '==', <ChatModel['kind']>'CHAT#PERSONAL')
-            .where(<keyof ChatModel>'participantsUids', 'array-contains', data.playerOne)
-            .where(<keyof ChatModel>'participantsUids', 'array-contains', data.playerTwo)
+            .where(<keyof ChatModel>'participantsUids', 'array-contains', data.playerOne!)
             .get();
-
-        /// chat already exists
-        /// sen chat id
-        if (chatsSnapshot.docs.length > 0)
-            return chatsSnapshot.docs[0].id;
+        const chats: Array<ChatModel> = chatsSnapshot.docs.map(d => d.data() as ChatModel);
+        const coincidence = chats.filter(d => (d.participantsUids as Array<string>).includes(data.playerTwo!))
+        /// search if any of the chats results contain the second player id            
+        if (coincidence.length > 0)
+            return coincidence[0].id;
 
         /// create new chat, fist obtain participants information
         const [playerOne, playerTwo]: [PlayerModel | null, PlayerModel | null] = await Promise.all([
