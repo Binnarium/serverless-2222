@@ -10,7 +10,7 @@ import { CreatePersonalChat } from "../model/create-personal-chat.model";
 export const createPersonalChat = functions.https.onCall(async (data: CreatePersonalChat, context): Promise<string | null> => {
     try {
         /// only valid queries
-        if (!data.playerOne || !data.playerTwo)
+        if (!data.playerOne || !data.playerTwo || data.playerOne == data.playerTwo)
             return null;
 
         // search a chat does not already exists
