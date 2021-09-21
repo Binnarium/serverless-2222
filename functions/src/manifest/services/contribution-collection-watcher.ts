@@ -1,3 +1,4 @@
+import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { FirestoreInstance } from "../../utils/configuration";
 import { CollectionWatcher } from "../models/collection-watcher.model";
@@ -50,6 +51,7 @@ function updateUrls(batch: FirebaseFirestore.WriteBatch, oldUrl: string | null, 
                 cityId,
                 pubCollectionUrl: newUrl,
                 id: watcherSlug,
+                scrapedAt: firestore.FieldValue.serverTimestamp()
             };
 
             batch.set(ref, data);
