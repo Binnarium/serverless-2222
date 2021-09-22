@@ -77,7 +77,9 @@ export const updatePubWatchers = functions.pubsub.schedule('0 */3 * * *')
                     id: pub.id,
                     pubUrl: `https://lab-movil-2222.pubpub.org/pub/${pub.slug}`,
                     pubSlug: pub.slug,
-                    title: pub.title
+                    title: pub.title,
+                    pubId: pub.id,
+                    lastActivity: null, /// since first time default is null
                 };
 
                 batch.set(ref, data);
