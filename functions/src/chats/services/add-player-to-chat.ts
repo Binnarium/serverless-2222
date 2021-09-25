@@ -7,6 +7,8 @@ import { randomIdGenerator } from "../../utils/random-id-generator";
 import { ChatParticipantModel } from "../model/chat-participant.model";
 import { ChatModel } from "../model/chat.model";
 
+const LIMIT_OF_CHAT_PARTICIPANTS_SIZE = 10;
+
 // when a new player is created add it to the players index
 export const addPlayerToChats = functions
     .runWith({ maxInstances: 1 })
@@ -18,7 +20,7 @@ export const addPlayerToChats = functions
         await AddPlayerToGeneralAndSpecificChat(player);
     });
 
-// Add player that havent been added to chat cron
+// Add player that haven't been added to chat cron
 // // export const addMissingPlayerToChats = functions.pubsub.schedule('* * * * *')
 // //     .onRun(async (context) => {
 // //         const unAddedPlayers = await FirestoreInstance.collection('players')
@@ -66,7 +68,6 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         groupId = foundGroupChat.id
         const chatDoc = FirestoreInstance.collection('chats').doc(foundGroupChat.id);
         /// chat group found, therefore add  player to chat
-        const limitOfPlayers = 3;
         const updateChat: Partial<ChatModel> = {
             participants: firestore.FieldValue.arrayUnion(<ChatParticipantModel>{
                 displayName: player.displayName,
@@ -74,7 +75,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
                 canSendMessage: true,
             }),
             participantsUids: firestore.FieldValue.arrayUnion(<string>player.uid),
-            participantsCompleted: (foundGroupChat.participantsUids as Array<string>).length + 1 >= limitOfPlayers,
+            participantsCompleted: (foundGroupChat.participantsUids as Array<string>).length + 1 >= LIMIT_OF_CHAT_PARTICIPANTS_SIZE,
         };
         batch.update(chatDoc, updateChat);
     } else {

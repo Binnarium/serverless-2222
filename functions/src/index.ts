@@ -7,6 +7,6 @@ export * from './clubhouse/services/obtain-clubhouse-information';
 export * from './manifest/services/create-collection-watcher';
 export * from './manifest/services/create-pubs-watcher';
 export * from './manifest/services/pubs-collaborators';
-// export * from './manifest/services/obtain-manifest-information';
 export * from './players/services/index-players-search';
+export * from './report-problems/services/report-problem';
 
