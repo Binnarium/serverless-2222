@@ -11,12 +11,17 @@ const agent = new https.Agent({
     rejectUnauthorized: false
 });
 
-/// add pubs so that pubs can be query later
-export const updatePubWatchers = functions.pubsub.schedule('0 */3 * * *')
+/**
+ * query the collections and scan pubs created on each tag
+ * 
+ * every collection is queried after 15 hours each
+ * 10 cities * 3 collections / city 
+ */
+export const updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
-        /// get all collections
+        /// get the oldest queried document of the collections
         const query = FirestoreInstance
             .collection('contributions')
             .doc('_configuration_')
@@ -31,8 +36,9 @@ export const updatePubWatchers = functions.pubsub.schedule('0 */3 * * *')
             batch.update(watcherRef.ref, <UpdateCollectionWatcherDate>{ scrapedAt: firestore.FieldValue.serverTimestamp() });
 
             const watcherData: CollectionWatcher | null = watcherRef.data() ?? null;
+
             if (!watcherData) {
-                console.error(`empty watcher doc ${watcherRef.ref.path}`);
+                console.error(`empty watcher data ${watcherRef.ref.path}`);
                 return;
             }
 

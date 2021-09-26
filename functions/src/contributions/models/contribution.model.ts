@@ -8,7 +8,7 @@ export interface ContributionModel {
     cityId: string;
     pubUserId: string;
     pubUserSlug: string;
-    isPointAwarded: boolean;
+    isMedalAwarded: boolean;
     pubTitle: string;
     kind: 'CONTRIBUTION#ATTRIBUTION' | 'CONTRIBUTION#DISCUSSION' | 'CONTRIBUTION#EDITED';
     actionId: string;

@@ -12,8 +12,12 @@ const agent = new https.Agent({
     rejectUnauthorized: false
 });
 
-/// add pubs so that pubs can be query later
-export const updatePubCollaborators = functions.pubsub.schedule('*/10 * * * *')
+/**
+ * scrap pub and obtain all collaborators, contributors, and any kind of collaboration
+ * 
+ * runs every 10 minutes, and scraps 5 every 10 mins
+ */
+export const extractPubCollaborators = functions.pubsub.schedule('*/10 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
@@ -82,7 +86,7 @@ async function saveAttributions(batch: firestore.WriteBatch, pubWatcherData: Pub
             cityId: pubWatcherData.cityId,
             createdDate: firestore.FieldValue.serverTimestamp(),
             id: randomIdGenerator(20),
-            isPointAwarded: false,
+            isMedalAwarded: false,
             kind: 'CONTRIBUTION#ATTRIBUTION',
             pubId: pubWatcherData.pubId,
             pubSlug: pubWatcherData.pubSlug,
@@ -107,7 +111,7 @@ async function saveReviews(batch: firestore.WriteBatch, pubWatcherData: PubWatch
             cityId: pubWatcherData.cityId,
             createdDate: firestore.FieldValue.serverTimestamp(),
             id: randomIdGenerator(20),
-            isPointAwarded: false,
+            isMedalAwarded: false,
             kind: 'CONTRIBUTION#EDITED',
             pubId: pubWatcherData.pubId,
             pubSlug: pubWatcherData.pubSlug,
@@ -134,7 +138,7 @@ async function saveDiscussions(batch: firestore.WriteBatch, pubWatcherData: PubW
                 cityId: pubWatcherData.cityId,
                 createdDate: firestore.FieldValue.serverTimestamp(),
                 id: randomIdGenerator(20),
-                isPointAwarded: false,
+                isMedalAwarded: false,
                 kind: 'CONTRIBUTION#DISCUSSION',
                 pubId: pubWatcherData.pubId,
                 pubSlug: pubWatcherData.pubSlug,

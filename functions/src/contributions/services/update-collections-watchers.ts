@@ -4,8 +4,12 @@ import { FirestoreInstance } from "../../utils/configuration";
 import { CollectionWatcher } from "../models/collection-watcher.model";
 import { ContributionScreenModel } from "../models/contribution-screen.model";
 
-/// add pub collections urls so that collections can be query later
-export const updateContributionsCollectionWatchers = functions.firestore
+/**
+ * when the pub url are updated in the contribution document of each city
+ * 
+ * Create watchers on each url so that pubs under each collection are query later
+ */
+export const updateCollectionsWatchers = functions.firestore
     .document('cities/{cityId}/pages/contribution')
     .onUpdate(async (snapshot, context) => {
         const batch = FirestoreInstance.batch();
@@ -16,7 +20,9 @@ export const updateContributionsCollectionWatchers = functions.firestore
 
 
         const urls: Array<[string | null, string | null]> = [
-            [oldContribution?.pubUrl ?? null, newContribution?.pubUrl ?? null],
+            [oldContribution?.teachingPractice ?? null, newContribution?.teachingPractice ?? null],
+            [oldContribution?.educativeEducations ?? null, newContribution?.educativeEducations ?? null],
+            [oldContribution?.governmentManagement ?? null, newContribution?.governmentManagement ?? null],
         ];
 
         /// update all urls
