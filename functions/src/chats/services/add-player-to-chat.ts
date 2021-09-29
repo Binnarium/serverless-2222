@@ -10,7 +10,7 @@ import { ChatModel } from "../model/chat.model";
 const LIMIT_OF_CHAT_PARTICIPANTS_SIZE = 10;
 
 // when a new player is created add it to the players index
-export const addPlayerToChats = functions
+export const CHAT_addPlayerToChats = functions
     .runWith({ maxInstances: 1 })
     .firestore
     .document('players/{uid}')
@@ -20,19 +20,22 @@ export const addPlayerToChats = functions
         await AddPlayerToGeneralAndSpecificChat(player);
     });
 
-// Add player that haven't been added to chat cron
-// // export const addMissingPlayerToChats = functions.pubsub.schedule('* * * * *')
-// //     .onRun(async (context) => {
-// //         const unAddedPlayers = await FirestoreInstance.collection('players')
-// //             .where(<keyof PlayerModel>'addedToChat', '==', <PlayerModel['addedToChat']>false)
-// //             .limit(2)
-// //             .get();
+/**
+ * Caller function to add missing player to a chat.
+ * 
+ * First query players that hast the `addedToChat` flag set to false,
+ * // TODO: change method to use the player group id flag
+ */
+export const CHAT_addMissingPlayerToChats = functions.https.onCall(async () => {
+    const unAddedPlayers = await FirestoreInstance.collection('players')
+        .where(<keyof PlayerModel>'addedToChat', '==', <PlayerModel['addedToChat']>false)
+        .get();
 
-// //         for await (const snapshot of unAddedPlayers.docs) {
-// //             const player = <PlayerModel>snapshot.data()
-// //             await AddPlayerToGeneralAndSpecificChat(player);
-// //         }
-// //     });
+    for await (const snapshot of unAddedPlayers.docs) {
+        const player = <PlayerModel>snapshot.data()
+        await AddPlayerToGeneralAndSpecificChat(player);
+    }
+});
 
 
 /// add player to doc with batch

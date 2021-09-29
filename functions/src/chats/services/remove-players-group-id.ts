@@ -3,13 +3,23 @@ import { UpdatePlayerGroupModel } from "../../players/models/update-player-group
 import { FirestoreInstance } from "../../utils/configuration";
 import { ChatModel } from "../model/chat.model";
 
-export const removePlayersGroupId = functions.firestore
+/**
+ * when deleting a chat, remove its participants. then update all participants
+ * group id
+ */
+export const CHAT_removePlayersGroupId = functions.firestore
     .document('chats/{id}')
     .onDelete(async (snapshot, context) => {
-        const batch = FirestoreInstance.batch();
-        const chat = <ChatModel>snapshot.data();
+        const chat: Partial<ChatModel> | null = <Partial<ChatModel>>snapshot.data();
 
-        (chat.participantsUids as Array<string>).forEach(uid => {
+        /// when no chat data exists no action required
+        if (!chat?.participantsUids)
+            return;
+
+        const batch = FirestoreInstance.batch();
+
+        /// obtain participants and update their information
+        (<Array<string>>chat.participantsUids).forEach(uid => {
             // update player was removed from chat
             const playerRef = FirestoreInstance.collection('players').doc(uid);
             const playerUpdate: UpdatePlayerGroupModel = { addedToChat: false, groupId: null };
