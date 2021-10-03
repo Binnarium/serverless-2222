@@ -78,3 +78,27 @@ export const CHAT_searchChat = functions.https.onCall(async (data: SearchChatQue
 
     return JSON.stringify(search.hits);
 });
+/// legacy code 
+export const searchChat = functions.https.onCall(async (data: SearchChatQueryModel, context): Promise<string | null> => {
+    const chatIndex: Index<ChatIndexModel> = await ChatsIndex();
+
+    /// only valid queries
+    if ((data.query ?? '').length === 0)
+        return null;
+
+    /// chats requires the player id to search only in the player available chats
+    if ((data.playerId ?? '').length === 0)
+        return null;
+
+    /// search query
+    const search = await chatIndex.search(
+        data.query,
+        {
+            cropLength: 10,
+            filter: [[`${<keyof ChatIndexModel>'participantsUids'} = ${data.playerId}`]]
+        }
+    );
+
+    return JSON.stringify(search.hits);
+});
+

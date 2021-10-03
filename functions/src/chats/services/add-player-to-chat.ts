@@ -63,6 +63,8 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
         .where(<keyof ChatModel>'id', '!=', 'general')
         .limit(1)
         .get();
+
+
     let groupId: null | string = null;
 
     /// add player to existing chat, or create new player

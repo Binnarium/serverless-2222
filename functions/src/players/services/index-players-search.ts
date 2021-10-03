@@ -65,6 +65,7 @@ export const searchPlayer = functions.https.onCall(async (data: SearchPlayerQuer
         filter.push([`${<keyof PlayerSearchIndexModel>'groupId'} = ${data.groupId}`]);
 
     const search = await playerIndex.search(data.query, { cropLength: 10, filter });
+    console.log(search);
 
     return JSON.stringify(search.hits);
 });

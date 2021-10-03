@@ -103,11 +103,11 @@ export const assignMedalOnCreate = functions.firestore
                 return;
 
             /// query for player with code
-            const playersCollection = FirestoreInstance.collection('players')
-                .where(<keyof PlayerModel>'pubCode', '==', playerPubCode);
-            const playersSnap = await playersCollection.get();
+            // const playersCollection = FirestoreInstance.collection('players')
+            //     .where(<keyof PlayerModel>'pubCode', '==', playerPubCode);
 
             /// TODO: complete activity
+            // const playersSnap = await playersCollection.get();
 
         }
 

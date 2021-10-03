@@ -2,8 +2,7 @@ import cheerio from "cheerio";
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import fetch from "node-fetch";
-import { PlayerModel } from "../../players/models/player.model";
-import { UpdateAward, UpdatePlayerMedals } from "../../players/models/update-player-medals.modal";
+import { MedalModel, PlayerModel, UpdatePlayerMedals } from "../../players/models/player.model";
 import { FirestoreInstance } from "../../utils/configuration";
 import { ClubhouseModel } from "../models/clubhouse.model";
 import { CreatedClubhouseModel } from "../models/created-clubhouse.model";
@@ -53,7 +52,7 @@ export const obtainClubhouseInformation = functions.firestore
 
         // update player doc
         batch.update(playerDoc, <UpdatePlayerMedals>{
-            clubhouseAwards: firestore.FieldValue.arrayUnion(<UpdateAward>{
+            clubhouseAwards: firestore.FieldValue.arrayUnion(<MedalModel>{
                 cityId,
                 obtained: true,
             }),
