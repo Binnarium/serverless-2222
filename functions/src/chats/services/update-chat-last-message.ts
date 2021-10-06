@@ -2,7 +2,7 @@ import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { FirestoreInstance } from "../../utils/configuration";
 import { ChatModel } from "../model/chat.model";
-import { MessageModel, UpdateMessageSendedDate } from "../model/message.model";
+import { MessageModel } from "../model/message.model";
 import { UpdateChatLastMessageModel } from "../model/update-chat-last-message.model";
 
 /**
@@ -25,15 +25,9 @@ export const CHAT_updateChatLastSendedMessage = functions.firestore
             },
         };
 
-        /// update message just in case
-        const updateMessage: UpdateMessageSendedDate = {
-            sendedDate: lastActivity,
-        };
-
         // update chat & message
         // once indexed update document with indexed time
         batch.update(FirestoreInstance.collection('chats').doc(chatId), updateChat);
-        batch.update(snapshot.ref, updateMessage);
 
         await batch.commit();
     });
@@ -70,15 +64,6 @@ export const CHAT_updateChatLastSendedMessageDataWhenMessageUpdates = functions.
 
             batch.update(FirestoreInstance.collection('chats').doc(chatId), updateChat);
         }
-
-        /// update message just in case
-        const updateMessage: UpdateMessageSendedDate = {
-            sendedDate: lastActivity,
-        };
-
-        // update chat & message
-        // once indexed update document with indexed time
-        batch.update(snapshot.after.ref, updateMessage);
 
         await batch.commit();
     });

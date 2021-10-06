@@ -5,8 +5,3 @@ export interface MessageModel {
     // TODO: add other properties
     id: string;
 }
-
-
-export interface UpdateMessageSendedDate extends Pick<MessageModel, 'sendedDate'> {
-    sendedDate: firestore.FieldValue;
-}
