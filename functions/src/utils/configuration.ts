@@ -5,7 +5,10 @@ import { MeiliSearch } from 'meilisearch';
 const app = admin.initializeApp();
 
 export const FirestoreInstance = app.firestore();
+export const DatabaseInstance = app.database();
+export const StorageInstance = app.storage();
 
+export const projectId = app.options.projectId ?? '';
 
 export const MeiliClient = new MeiliSearch({
     host: functions.config().meilisearch.host,
