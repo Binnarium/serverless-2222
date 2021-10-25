@@ -6,7 +6,6 @@ export interface PlayerModel {
     uid: string;
     pubCode: string;
     pubUserId?: string | null;
-    indexedDate?: string | null;
     addedToChat?: boolean | null;
     groupId?: string | null;
 

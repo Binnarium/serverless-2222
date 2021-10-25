@@ -17,7 +17,8 @@ const agent = new https.Agent({
  * every collection is queried after 15 hours each
  * 10 cities * 3 collections / city 
  */
-export const updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
+// export const updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
+export const updatePubWatchers = functions.pubsub.schedule('* * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
@@ -63,7 +64,7 @@ export const updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
 
             /// transform map to array and get only pubs
             const pubs = Object.values(layoutPubsByBlock?.pubsById);
-
+///TODO: console log number of pubs found, and data, star debuging here
             /// store pubs watchers 
             const pubTasks = pubs.map(async (pub: any) => {
                 if (!pub.id) {

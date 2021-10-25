@@ -1,6 +1,4 @@
-import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
-import { FirestoreInstance } from "../../utils/configuration";
 import { PlayerSearchIndexModel } from "../models/player-search-index.model";
 import { PlayerModel } from "../models/player.model";
 import { SearchPlayerQueryModel } from "../models/search-player-query.model";
@@ -13,9 +11,6 @@ export const addPlayerToSearchIndex = functions.firestore
         const playerIndex = await PlayerIndex();
         const { displayName, email, uid, groupId } = <PlayerModel>snapshot.data();
         await playerIndex.addDocuments([{ displayName, email, uid, groupId }]);
-
-        // once indexed update document with indexed time
-        await FirestoreInstance.doc(snapshot.ref.path).update({ indexedDate: firestore.FieldValue.serverTimestamp() });
     });
 
 /// when a player is removed, remove it from the index
