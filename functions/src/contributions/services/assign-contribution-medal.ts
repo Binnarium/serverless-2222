@@ -23,15 +23,18 @@ export const assignMedalOnCreate = functions.firestore
 
         const contribution = <ContributionModel>snapshot.data();
 
+        const pubUserId = contribution.pubUserId;
+
         /// search for an existing player with the pubUserId;
         /// if found assign the medal and update state of contribution
         const findPlayerWithPubPlayerIdQuery = FirestoreInstance
             .collection('players')
-            .where(<keyof PlayerModel>'pubUserId', '!=', <PlayerModel['pubUserId']>null)
+            .where(<keyof PlayerModel>'pubUserId', '!=', <PlayerModel['pubUserId']>pubUserId)
             .limit(1) as firestore.Query<PlayerModel>;
 
         const queryResults = await findPlayerWithPubPlayerIdQuery.get();
 
+        /// found a player
         if (queryResults.docs.length > 0) {
             /// found coincidence
             const [foundPlayerSnap] = queryResults.docs;
@@ -41,39 +44,7 @@ export const assignMedalOnCreate = functions.firestore
                 console.error(`no player data found ${foundPlayerSnap.ref.path}`);
                 return;
             }
-
-            /// player contains an element with the content of a contribution
-            const contributionsAwards = foundPlayer?.contributionsAwards as Array<MedalModel> | null | undefined;
-            const oldMedal = contributionsAwards?.find(c => c.cityId === contribution.cityId) ?? null;
-
-            if (contributionsAwards && oldMedal) {
-                /// update already existing medal
-                /// create a copy of the award, except the one to be updated     
-                const newContributionAwards = contributionsAwards.filter(c => c.cityId !== contribution.cityId);
-
-                batch.update(foundPlayerSnap.ref, <UpdatePlayerMedals>{
-                    contributionsAwards: [
-                        ...newContributionAwards,
-                        /// new medal
-                        <MedalModel>{
-                            cityId: contribution.cityId,
-                            obtained: true,
-                            count: (oldMedal.count ?? 0) + 1,
-                        }
-                    ]
-                });
-            } else {
-                /// player has no contribution awards yet or no medal yet
-                const updatePlayerContributionMedal: UpdatePlayerMedals = {
-                    contributionsAwards: firestore.FieldValue.arrayUnion(<MedalModel>{
-                        cityId: contribution.cityId,
-                        obtained: true,
-                        count: 1,
-                    }),
-                };
-                batch.update(foundPlayerSnap.ref, updatePlayerContributionMedal);
-            }
-
+            addMedalToPlayer(batch, foundPlayer, foundPlayerSnap.ref, contribution);
         }
 
 
@@ -103,12 +74,33 @@ export const assignMedalOnCreate = functions.firestore
                 return;
 
             /// query for player with code
-            // const playersCollection = FirestoreInstance.collection('players')
-            //     .where(<keyof PlayerModel>'pubCode', '==', playerPubCode);
+            const playersCollection = FirestoreInstance.collection('players')
+                .where(<keyof PlayerModel>'pubCode', '==', playerPubCode);
 
-            /// TODO: complete activity
-            // const playersSnap = await playersCollection.get();
+            const playersSnap = await playersCollection.get();
 
+            /// found player with code, save them code
+            if (playersSnap.docs.length > 0) {
+                const [foundPlayerSnap] = queryResults.docs;
+                const foundPlayer = foundPlayerSnap.exists ? foundPlayerSnap.data() : null;
+
+                if (!foundPlayer) {
+                    console.error(`no player data found ${foundPlayerSnap.ref.path}`);
+                    return;
+                }
+
+                addMedalToPlayer(batch, foundPlayer, foundPlayerSnap.ref, contribution);
+
+                /// update player with pubcode
+                batch.update(foundPlayerSnap.ref, <PlayerModel>{
+                    pubUserId: contribution.pubUserId,
+                });
+
+            }
+            /// no players found, return prematurely, dont save nothing
+            else {
+                return;
+            }
         }
 
         /// no player or code found. dont update state of the contribution so it can 
@@ -118,3 +110,40 @@ export const assignMedalOnCreate = functions.firestore
         await batch.commit();
     });
 
+function addMedalToPlayer(batch: firestore.WriteBatch, foundPlayer: PlayerModel, playerRef: firestore.DocumentReference, contribution: ContributionModel) {
+    /// player contains an element with the content of a contribution
+    const contributionsAwards = foundPlayer?.contributionsAwards as Array<MedalModel> | null | undefined;
+    const oldMedal = contributionsAwards?.find(c => c.cityId === contribution.cityId) ?? null;
+
+    /// already contains medals, add new medal to array
+    if (contributionsAwards && oldMedal) {
+        /// update already existing medal
+        /// create a copy of the award, except the one to be updated     
+        const newContributionAwards = contributionsAwards.filter(c => c.cityId !== contribution.cityId);
+
+        batch.update(playerRef, <UpdatePlayerMedals>{
+            contributionsAwards: [
+                ...newContributionAwards,
+                /// new medal
+                <MedalModel>{
+                    cityId: contribution.cityId,
+                    obtained: true,
+                    count: (oldMedal.count ?? 0) + 1,
+                }
+            ]
+        });
+    }
+
+    /// player has no medals yet, create array 
+    else {
+        /// player has no contribution awards yet or no medal yet
+        const updatePlayerContributionMedal: UpdatePlayerMedals = {
+            contributionsAwards: firestore.FieldValue.arrayUnion(<MedalModel>{
+                cityId: contribution.cityId,
+                obtained: true,
+                count: 1,
+            }),
+        };
+        batch.update(playerRef, updatePlayerContributionMedal);
+    }
+}

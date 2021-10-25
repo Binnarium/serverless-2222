@@ -49,19 +49,20 @@ export const updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
             const viewData = JSON.parse($('#view-data').attr('data-json') ?? '{}')
 
             // validate view data exists
-            const pageData = viewData?.pageData ?? null;
+            const layoutPubsByBlock = viewData?.layoutPubsByBlock ?? null;
 
-            if (!pageData) {
+            if (!layoutPubsByBlock) {
                 console.error(`no page data found ${watcherData.pubCollectionUrl}`);
                 return;
             }
 
-            if (!pageData?.layoutPubsByBlock?.pubsById) {
+            if (!layoutPubsByBlock?.pubsById) {
                 console.error(`no pubs data found ${watcherData.pubCollectionUrl}`);
                 return;
             }
 
-            const pubs = Object.values(pageData?.layoutPubsByBlock?.pubsById);
+            /// transform map to array and get only pubs
+            const pubs = Object.values(layoutPubsByBlock?.pubsById);
 
             /// store pubs watchers 
             const pubTasks = pubs.map(async (pub: any) => {
