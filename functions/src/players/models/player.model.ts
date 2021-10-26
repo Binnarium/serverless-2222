@@ -10,6 +10,7 @@ export interface PlayerModel {
     groupId?: string | null;
 
     /// medals
+    proactivity: number;
     projectAwards?: firestore.FieldValue | Array<MedalModel>;
     contributionsAwards?: firestore.FieldValue | Array<MedalModel>;
     clubhouseAwards?: firestore.FieldValue | Array<MedalModel>;

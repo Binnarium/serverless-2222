@@ -9,55 +9,62 @@ import { CreatedClubhouseModel } from "../models/created-clubhouse.model";
 
 
 // when a new player is created add it to the players index
-export const obtainClubhouseInformation = functions.firestore
-    .document('clubhouse/{id}')
+export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
+    .document('players/{uid}/clubhouse/{id}')
     .onCreate(async (snapshot, context) => {
-        const { clubhouseUrl, cityId, id, uploaderId } = <CreatedClubhouseModel>snapshot.data();
+        try {
+            const { clubhouseUrl, cityId, id, uploaderId } = <CreatedClubhouseModel>snapshot.data();
 
-        const page = await fetch(clubhouseUrl);
-        const html = await page.text();
-        const $ = cheerio.load(html);
+            const page = await fetch(clubhouseUrl);
+            const html = await page.text();
+            const $ = cheerio.load(html);
 
-        // obtain date from raw html
-        const coincidence = /(const dt =).*/.exec(html)?.[0] ?? null;
-        const rawDate = coincidence?.split('"')[1] ?? null;
-        if (!rawDate)
-            throw Error('Invalid date');
+            // obtain date from raw html
+            const coincidence = /(const dt =).*/.exec(html)?.[0] ?? null;
+            const rawDate = coincidence?.split('"')[1] ?? null;
+            if (!rawDate)
+                throw Error('Invalid date');
 
-        // update url
-        const updatedClubhouseUrl = $('meta[property = "twitter:url"]').attr('content');
-        if (!updatedClubhouseUrl)
-            throw Error('Invalid clubhouse updated url');
+            // update url
+            const updatedClubhouseUrl = $('meta[property = "twitter:url"]').attr('content');
+            if (!updatedClubhouseUrl)
+                throw Error('Invalid clubhouse updated url');
 
-        /// player doc 
-        const playerDoc = FirestoreInstance.collection('players').doc(uploaderId);
-        const playerSnap = await playerDoc.get();
-        const player: PlayerModel | null = <PlayerModel>playerSnap.data();
+            /// player doc 
+            const playerDoc = FirestoreInstance.collection('players').doc(uploaderId);
+            const playerSnap = await playerDoc.get();
+            const player: PlayerModel | null = <PlayerModel>playerSnap.data();
 
-        const clubhouse: ClubhouseModel = {
-            cityId,
-            id,
-            uploaderDisplayName: player?.displayName?.trim(),
-            clubhouseUrl: updatedClubhouseUrl,
-            name: $('title').first().text().split('-')[0].trim(),
-            clubhouseId: updatedClubhouseUrl.split('event/')[1],
-            uploaderId,
-            date: new Date(rawDate),
-            scraped: firestore.FieldValue.serverTimestamp(),
-        };
-
-        const batch = FirestoreInstance.batch();
-        // update document data
-        batch.update(FirestoreInstance.collection('clubhouse').doc(clubhouse.id), clubhouse);
-
-        // update player doc
-        batch.update(playerDoc, <UpdatePlayerMedals>{
-            clubhouseAwards: firestore.FieldValue.arrayUnion(<MedalModel>{
+            const clubhouse: ClubhouseModel = {
                 cityId,
-                obtained: true,
-            }),
-        });
+                id,
+                uploaderDisplayName: player?.displayName?.trim(),
+                clubhouseUrl: updatedClubhouseUrl,
+                name: $('title').first().text().split('-')[0].trim(),
+                clubhouseId: updatedClubhouseUrl.split('event/')[1],
+                uploaderId,
+                date: new Date(rawDate),
+                scraped: firestore.FieldValue.serverTimestamp(),
+            };
 
-        await batch.commit();
+            const batch = FirestoreInstance.batch();
+            // update document data
+            batch.update(snapshot.ref, clubhouse);
+
+            // update player doc
+            batch.update(playerDoc, <UpdatePlayerMedals>{
+                clubhouseAwards: firestore.FieldValue.arrayUnion(<MedalModel>{
+                    cityId,
+                    obtained: true,
+                }),
+            });
+
+            await batch.commit();
+
+        } catch (error) {
+            /// in case of error, delete uplodaded information
+            console.error(error);
+            await snapshot.ref.delete();
+        }
     });
 

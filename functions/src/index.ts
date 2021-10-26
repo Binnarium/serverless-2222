@@ -1,3 +1,4 @@
+export * from './awards/services/update-awards';
 export * from './chats/services/add-player-to-chat';
 export * from './chats/services/chats-search';
 export * from './chats/services/create-personal-chat';
