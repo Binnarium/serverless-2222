@@ -15,9 +15,9 @@ const agent = new https.Agent({
 /**
  * scrap pub and obtain all collaborators, contributors, and any kind of collaboration
  * 
- * runs every 10 minutes, and scraps 5 every 10 mins
+ * runs every 10 minutes, and scraps 5 every 20 mins
  */
-export const extractPubCollaborators = functions.pubsub.schedule('*/10 * * * *')
+export const CONTRIBUTIONS_extractPubCollaborators = functions.pubsub.schedule('*/20 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
@@ -26,7 +26,7 @@ export const extractPubCollaborators = functions.pubsub.schedule('*/10 * * * *')
             .collection('contributions')
             .doc('_configuration_')
             .collection('pubs-watchers')
-            .orderBy(<keyof PubWatcher>'scrapedAt', 'desc')
+            .orderBy(<keyof PubWatcher>'scrapedAt', 'asc')
             .limit(5) as firestore.Query<PubWatcher>;
 
         const { docs } = await query.get();
