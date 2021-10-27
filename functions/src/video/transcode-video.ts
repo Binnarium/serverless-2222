@@ -35,7 +35,7 @@ export async function TranscodeVideo(video: VideoModel) {
                                 heightPixels: 360,
                                 widthPixels: 640,
                                 bitrateBps: 550000,
-                                frameRate: 60,
+                                frameRate: 30,
                             },
                         },
                     },
@@ -46,7 +46,7 @@ export async function TranscodeVideo(video: VideoModel) {
                                 heightPixels: 720,
                                 widthPixels: 1280,
                                 bitrateBps: 2500000,
-                                frameRate: 60,
+                                frameRate: 30,
                             },
                         },
                     },
@@ -74,8 +74,8 @@ export async function TranscodeVideo(video: VideoModel) {
                 spriteSheets: [
                     {
                         filePrefix: 'preview',
-                        spriteHeightPixels: 720,
-                        spriteWidthPixels: 1280,
+                        spriteHeightPixels: 360,
+                        spriteWidthPixels: 640,
                         columnCount: 10,
                         rowCount: 1,
                         totalCount: 10,
