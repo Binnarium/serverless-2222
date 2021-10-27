@@ -5,6 +5,7 @@ export * from './chats/services/create-personal-chat';
 export * from './chats/services/remove-players-group-id';
 export * from './chats/services/update-chat-last-message';
 export * from './clubhouse/services/obtain-clubhouse-information';
+export * from './contributions/services/assign-contribution-medal';
 export * from './contributions/services/create-pubs-watcher';
 export * from './contributions/services/extract-pubs-collaborators';
 export * from './contributions/services/update-collections-watchers';

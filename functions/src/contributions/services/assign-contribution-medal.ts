@@ -12,12 +12,12 @@ const agent = new https.Agent({
 });
 // every 20 minutes get a contribution that has not been assigned yet and assign it to the owner
 // 
-// query only contribution that has not being assigned yet, and limit to 25 each run
-export const assignPlayerMissingContributions = functions.pubsub.schedule('*/20 * * * *')
+// query only contribution that has not being assigned yet, and limit to 10 each run
+export const CONTRIBUTIONS_assignPlayerMissingContributions = functions.pubsub.schedule('* * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
-        /// find unawwarded contributions 
+        /// find un-awarded contributions 
         const unAwardedContributionsQuery = FirestoreInstance
             .collection('contributions')
             .where(<keyof ContributionModel>'isMedalAwarded', '==', <ContributionModel['isMedalAwarded']>false)
@@ -25,13 +25,18 @@ export const assignPlayerMissingContributions = functions.pubsub.schedule('*/20 
 
         const unAwardedContributions = await unAwardedContributionsQuery.get();
 
+        console.log(`Unawarded: count ${unAwardedContributions.docs.length}`);
+
         if (unAwardedContributions.docs.length === 0)
             return;
 
         for await (const snapshot of unAwardedContributions.docs) {
-            const contribution = <ContributionModel>snapshot.data();
-            await awardContribution(batch, contribution);
+            if (!snapshot.exists)
+                continue;
 
+            const contribution = <ContributionModel>snapshot.data();
+            console.log(`looking for ${contribution.id}`)
+            await awardContribution(batch, contribution);
         }
 
         /// commit all changes made
@@ -39,7 +44,7 @@ export const assignPlayerMissingContributions = functions.pubsub.schedule('*/20 
 
     });
 
-export const assignMedalOnCreate = functions.firestore
+export const CONTRIBUTIONS_assignContributionOnCreate = functions.firestore
     .document('contributions/{contributionId}')
     .onCreate(async (snapshot, context) => {
         const batch = FirestoreInstance.batch();
@@ -48,28 +53,26 @@ export const assignMedalOnCreate = functions.firestore
 
         await awardContribution(batch, contribution);
 
-
         /// commit all changes made
         await batch.commit();
     });
 
 
 async function awardContribution(batch: firestore.WriteBatch, contribution: ContributionModel) {
-    const pubUserId = contribution.pubUserId;
 
     /// search for an existing player with the pubUserId;
     /// if found assign the medal and update state of contribution
     const findPlayerWithPubPlayerIdQuery = FirestoreInstance
         .collection('players')
-        .where(<keyof PlayerModel>'pubUserId', '!=', <PlayerModel['pubUserId']>pubUserId)
+        .where(<keyof PlayerModel>'pubUserId', '==', <PlayerModel['pubUserId']>contribution.pubUserId)
         .limit(1) as firestore.Query<PlayerModel>;
 
-    const queryResults = await findPlayerWithPubPlayerIdQuery.get();
+    const searchResults = await findPlayerWithPubPlayerIdQuery.get();
 
     /// found a player
-    if (queryResults.docs.length > 0) {
+    if (searchResults.docs.length > 0) {
         /// found coincidence
-        const [foundPlayerSnap] = queryResults.docs;
+        const [foundPlayerSnap] = searchResults.docs;
         const foundPlayer = foundPlayerSnap.exists ? foundPlayerSnap.data() : null;
 
         if (!foundPlayer) {
@@ -113,7 +116,7 @@ async function awardContribution(batch: firestore.WriteBatch, contribution: Cont
 
         /// found player with code, save them code
         if (playersSnap.docs.length > 0) {
-            const [foundPlayerSnap] = queryResults.docs;
+            const [foundPlayerSnap] = searchResults.docs;
             const foundPlayer = foundPlayerSnap.exists ? foundPlayerSnap.data() : null;
 
             if (!foundPlayer) {
