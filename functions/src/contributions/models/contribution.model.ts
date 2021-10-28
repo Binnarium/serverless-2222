@@ -6,9 +6,9 @@ export interface ContributionModel {
     pubUrl: string;
     pubId: string;
     cityId: string;
+    awardedToUid: string | null;
     pubUserId: string;
     pubUserSlug: string;
-    isMedalAwarded: boolean;
     pubTitle: string;
     kind: 'CONTRIBUTION#ATTRIBUTION' | 'CONTRIBUTION#DISCUSSION' | 'CONTRIBUTION#EDITED';
     actionId: string;
