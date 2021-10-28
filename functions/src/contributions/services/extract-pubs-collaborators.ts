@@ -58,8 +58,8 @@ export const CONTRIBUTIONS_extractPubCollaborators = functions.pubsub.schedule('
 
             /// scrap collaboration only when document has changed
             batch.update(pubWatcherRef.ref, <UpdatePubWatcherDate>{ lastActivity: pubData.updatedAt });
-            if (pubWatcherData.lastActivity === pubData.updatedAt)
-                return;
+            // if (pubWatcherData.lastActivity === pubData.updatedAt)
+            //     return;
 
             /// save attributions
             if (!!pubData.attributions)
