@@ -64,6 +64,16 @@ export const VIDEO_updateContributionExplanation = functions.firestore
             await TranscodeVideo(newData.video!);
     });
 
+export const VIDEO_updateVideoOnChatMessage = functions.firestore
+    .document('chats/{chatId}/messages/{messageId}')
+    .onCreate(async (snapshot, _) => {
+        const data = <{ kind: string, asset?: VideoModel }>snapshot.data();
+
+        if (data.kind !== 'MESSAGE#VIDEO')
+            return;
+        await TranscodeVideo(data.asset!);
+    });
+
 export const VIDEO_transcodeVideo = functions.https.onCall(async (data: undefined | { path?: string }, _) => {
     try {
         const path = data?.path ?? null;
