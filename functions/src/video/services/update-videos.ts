@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { TranscodeVideo } from "../transcode-video";
+import { TranscodeVideo, TranscodeVideoWithPath } from "../transcode-video";
 import { VideoModel } from "../video.model";
 
 export const VIDEO_updateWelcomeVideo = functions.firestore
@@ -47,7 +47,7 @@ export const VIDEO_updateCityContentVideo = functions.firestore
             if (!!coincidence)
                 continue;
 
-            console.log('procesing video');
+            console.log(`procesing video ${current.path}`);
             await TranscodeVideo(current);
         }
 
@@ -63,3 +63,16 @@ export const VIDEO_updateContributionExplanation = functions.firestore
         if (!!newData.video && oldData.video?.path !== newData.video?.path)
             await TranscodeVideo(newData.video!);
     });
+
+export const VIDEO_transcodeVideo = functions.https.onCall(async (data: undefined | { path?: string }, _) => {
+    try {
+        const path = data?.path ?? null;
+
+        /// validate if video has changed
+        if (!!path)
+            await TranscodeVideoWithPath(path);
+        return true;
+    } catch (error) {
+        return false;
+    }
+});

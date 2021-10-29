@@ -9,7 +9,16 @@ const location = 'us-central1';
 
 export async function TranscodeVideo(video: VideoModel) {
 
-    const clearPath = video.path
+    return await transcode(video.path);
+}
+
+export async function TranscodeVideoWithPath(path: string) {
+    return await transcode(path);
+}
+
+
+async function transcode(path: string) {
+    const clearPath = path
         .replace(/[&/\\#, +()$~%.'":*?<>{}]/g, '_')
 
     /// validate video doesn't exist yet
@@ -23,7 +32,7 @@ export async function TranscodeVideo(video: VideoModel) {
     const request: protos.google.cloud.video.transcoder.v1.ICreateJobRequest = {
         parent: transcoderServiceClient.locationPath(projectId, location),
         job: {
-            inputUri: `gs://lab-movil-2222.appspot.com/${video.path}`,
+            inputUri: `gs://lab-movil-2222.appspot.com/${path}`,
             outputUri: `${videosBucket}${clearPath}/`,
             config: {
                 pubsubDestination: { topic: `projects/${projectId}/topics/${'VIDEO_completed'}` },
@@ -87,6 +96,4 @@ export async function TranscodeVideo(video: VideoModel) {
 
     // Run request
     await transcoderServiceClient.createJob(request);
-
-
 }
