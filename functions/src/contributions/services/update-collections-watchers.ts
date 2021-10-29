@@ -9,7 +9,7 @@ import { ContributionScreenModel } from "../models/contribution-screen.model";
  * 
  * Create watchers on each url so that pubs under each collection are query later
  */
-export const updateCollectionsWatchers = functions.firestore
+export const CONTRIBUTIONS_updateCollectionsWatchers = functions.firestore
     .document('cities/{cityId}/pages/contribution')
     .onUpdate(async (snapshot, context) => {
         const batch = FirestoreInstance.batch();

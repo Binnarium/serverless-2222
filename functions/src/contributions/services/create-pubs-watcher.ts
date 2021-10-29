@@ -32,6 +32,8 @@ export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('*/30 *
 
         const { docs } = await query.get();
 
+        console.log(`Watchers found ${docs.length}`);
+
         const tasks = docs.map(async watcherRef => {
             /// update scraped date
             batch.update(watcherRef.ref, <UpdateCollectionWatcherDate>{ scrapedAt: firestore.FieldValue.serverTimestamp() });
@@ -64,7 +66,6 @@ export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('*/30 *
 
             /// transform map to array and get only pubs
             const pubs = Object.values(layoutPubsByBlock?.pubsById);
-            ///TODO: console log number of pubs found, and data, star debuging here
             /// store pubs watchers 
             const pubTasks = pubs.map(async (pub: any) => {
                 if (!pub.id) {
