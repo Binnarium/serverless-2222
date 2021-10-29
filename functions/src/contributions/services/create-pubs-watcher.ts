@@ -15,10 +15,10 @@ const agent = new https.Agent({
  * query the collections and scan pubs created on each tag
  * 
  * every collection is queried after 15 hours each
- * 10 cities * 3 collections / city 
+ * 10 cities * 3 collections / city = 30 collections
+ * the query runs every 30 mins, thats, 48 times in a day
  */
-// export const updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
-export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('* * * * *')
+export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
@@ -27,7 +27,7 @@ export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('* * * 
             .collection('contributions')
             .doc('_configuration_')
             .collection('collection-watchers')
-            .orderBy(<keyof CollectionWatcher>'scrapedAt', 'desc')
+            .orderBy(<keyof CollectionWatcher>'scrapedAt', 'asc')
             .limit(1) as firestore.Query<CollectionWatcher>;
 
         const { docs } = await query.get();
@@ -66,8 +66,6 @@ export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('* * * 
 
             /// transform map to array and get only pubs
             const pubs = Object.values(layoutPubsByBlock?.pubsById);
-            console.log(`Nuner of pubs found in ${watcherData.id} are ${pubs.length}`);
-
             /// store pubs watchers 
             const pubTasks = pubs.map(async (pub: any) => {
                 if (!pub.id) {

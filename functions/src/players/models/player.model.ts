@@ -11,13 +11,14 @@ export interface PlayerModel {
 
     /// medals
     proactivity: number;
+    marathonAwards?: firestore.FieldValue | Array<MedalModel>;
     projectAwards?: firestore.FieldValue | Array<MedalModel>;
     contributionsAwards?: firestore.FieldValue | Array<MedalModel>;
     clubhouseAwards?: firestore.FieldValue | Array<MedalModel>;
 }
 
 export interface MedalModel {
-    cityId: string;
+    cityId: string | null;
     obtained: true;
     count?: number;
 }
