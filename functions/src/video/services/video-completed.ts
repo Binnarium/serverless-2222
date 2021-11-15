@@ -24,8 +24,32 @@ export const VIDEO_completed_callback = functions.pubsub.topic('VIDEO_completed'
         throw Error('Bad uri format');
 
     const path = uri[3];
+    await saveUrls(path);
+
+    /// CLEAN UP
+    await transcoderServiceClient.deleteJob(job);
+})
+
+export const VIDEO_resignVideo = functions.https.onRequest(async (req, res) => {
+    try {
+        const [folders] = await StorageInstance.bucket(videosBucket).getFiles();
+        for await (const folder of folders) {
+            const path = folder.name.split('/')[0];
+
+            console.log(JSON.stringify({ path, signer: folder.signer }));
+            await saveUrls(path);
+        }
 
 
+        res.json({ ok: true });
+    } catch (error) {
+        console.log(error);
+        res.json({ ok: false });
+    }
+});
+
+
+async function saveUrls(path: string): Promise<void> {
     const [files] = await StorageInstance.bucket(videosBucket).getFiles({ directory: path });
 
     let previewUrl: string | null = null;
@@ -57,7 +81,4 @@ export const VIDEO_completed_callback = functions.pubsub.topic('VIDEO_completed'
         sdUrl,
         path,
     });
-
-    /// CLEAN UP
-    await transcoderServiceClient.deleteJob(job);
-})
+}
