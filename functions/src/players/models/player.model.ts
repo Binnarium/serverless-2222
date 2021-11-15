@@ -15,6 +15,11 @@ export interface PlayerModel {
     projectAwards?: firestore.FieldValue | Array<MedalModel>;
     contributionsAwards?: firestore.FieldValue | Array<MedalModel>;
     clubhouseAwards?: firestore.FieldValue | Array<MedalModel>;
+
+    /// flags
+    courseStatus?: string | null;
+    allowWebAccess?: boolean | null;
+    playerType?: string | null;
 }
 
 export interface MedalModel {
@@ -25,3 +30,5 @@ export interface MedalModel {
 
 export interface UpdatePlayerMedals extends Pick<PlayerModel, 'projectAwards' | 'contributionsAwards' | 'clubhouseAwards'> {
 }
+
+export type UpdatePlayerCourseFlags = Pick<PlayerModel, 'courseStatus' | 'allowWebAccess' | 'playerType'>;

@@ -10,6 +10,7 @@ export * from './contributions/services/create-pubs-watcher';
 export * from './contributions/services/extract-pubs-collaborators';
 export * from './contributions/services/update-collections-watchers';
 export * from './players/services/index-players-search';
+export * from './players/services/player-course-status';
 export * from './report-problems/services/report-problem';
 export * from './video/services/update-videos';
 export * from './video/services/video-completed';
