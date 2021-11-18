@@ -26,7 +26,11 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
                 throw Error('Invalid date');
 
             // update url
-            const updatedClubhouseUrl = $('meta[property = "twitter:url"]').attr('content');
+            const updatedClubhouseUrl =
+                $('meta[property = "og:url"]').attr('content')
+                ?? $('meta[name = "twitter:url"]').attr('content')
+                ?? null;
+
             if (!updatedClubhouseUrl)
                 throw Error('Invalid clubhouse updated url');
 
@@ -41,7 +45,7 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
                 uploaderDisplayName: player?.displayName?.trim(),
                 clubhouseUrl: updatedClubhouseUrl,
                 name: $('title').first().text().split('-')[0].trim(),
-                clubhouseId: updatedClubhouseUrl.split('event/')[1],
+                clubhouseId: updatedClubhouseUrl.split('/')[updatedClubhouseUrl.split('/').length - 1] ?? null,
                 uploaderId,
                 date: new Date(rawDate),
                 scraped: firestore.FieldValue.serverTimestamp(),
@@ -64,7 +68,8 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
         } catch (error) {
             /// in case of error, delete uplodaded information
             console.error(error);
-            await snapshot.ref.delete();
+            console.error({ ref: snapshot.ref, data: JSON.stringify(snapshot.data()) });
+            // await snapshot.ref.delete();
         }
     });
 
