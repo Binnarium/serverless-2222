@@ -69,7 +69,9 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
             /// in case of error, delete uplodaded information
             console.error(error);
             console.error({ ref: snapshot.ref, data: JSON.stringify(snapshot.data()) });
-            // await snapshot.ref.delete();
+            await snapshot.ref.update({
+                ok: false
+            });
         }
     });
 
