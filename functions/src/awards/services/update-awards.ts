@@ -145,7 +145,8 @@ async function _CalculateProjectAwards(uid: string): Promise<MedalModel[]> {
 async function _CalculateClubhouseAwards(uid: string): Promise<MedalModel[]> {
 
     const clubhouseQuery = FirestoreInstance.collection('players').doc(uid).collection('clubhouse')
-        .orderBy(<keyof ClubhouseModel>'cityId');
+        .orderBy(<keyof ClubhouseModel>'cityId')
+        .orderBy(<keyof ClubhouseModel>'scraped');
 
     const { docs: clubhouseEvents } = await clubhouseQuery.get();
 
