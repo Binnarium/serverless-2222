@@ -9,6 +9,8 @@ export * from './contributions/services/assign-contribution-medal';
 export * from './contributions/services/create-pubs-watcher';
 export * from './contributions/services/extract-pubs-collaborators';
 export * from './contributions/services/update-collections-watchers';
+export * from './inscriptions/services/mark-inscription';
+export * from './inscriptions/services/mark-registered-players';
 export * from './players/services/index-players-search';
 export * from './players/services/player-course-status';
 export * from './report-problems/services/report-problem';
