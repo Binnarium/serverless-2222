@@ -15,6 +15,18 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
         try {
             const { clubhouseUrl, cityId, id, uploaderId } = <CreatedClubhouseModel>snapshot.data();
 
+            /// validate clubhouse url does not already exists
+            const searchIfClubhouseExistsQuery = FirestoreInstance.collectionGroup('clubhouse')
+                .where(<keyof CreatedClubhouseModel>'clubhouseUrl', '==', clubhouseUrl);
+            const searchResults = await searchIfClubhouseExistsQuery.get();
+
+            /// since there will be at least one, them when there are more than one it is duplicated
+            if (searchResults.docs.length > 1) {
+                console.log('already exists')
+                await snapshot.ref.delete();
+                return;
+            }
+
             const page = await fetch(clubhouseUrl);
             const html = await page.text();
             const $ = cheerio.load(html);
@@ -54,6 +66,7 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
             const batch = FirestoreInstance.batch();
             // update document data
             batch.update(snapshot.ref, clubhouse);
+            console.log('updating', JSON.stringify(clubhouse));
 
             // update player doc
             batch.update(playerDoc, <UpdatePlayerMedals>{
