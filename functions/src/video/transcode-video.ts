@@ -25,8 +25,10 @@ async function transcode(path: string) {
     const ref = DatabaseInstance.ref(`videos/${clearPath}`);
     const snap = await ref.get();
 
-    if (snap.exists())
-        return;
+    if (snap.exists()) {
+        console.log('transcode already exists')
+        return
+    }
 
     // Construct request
     const request: protos.google.cloud.video.transcoder.v1.ICreateJobRequest = {

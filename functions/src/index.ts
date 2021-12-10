@@ -7,6 +7,7 @@ export * from './chats/services/update-chat-last-message';
 export * from './clubhouse/services/obtain-clubhouse-information';
 export * from './contributions/services/assign-contribution-medal';
 export * from './contributions/services/create-pubs-watcher';
+export * from './contributions/services/create-pubs-watcher-from-profile';
 export * from './contributions/services/extract-pubs-collaborators';
 export * from './contributions/services/update-collections-watchers';
 export * from './inscriptions/services/mark-inscription';
