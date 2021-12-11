@@ -30,5 +30,7 @@ export interface MedalModel {
 
 export interface UpdatePlayerMedals extends Pick<PlayerModel, 'projectAwards' | 'contributionsAwards' | 'clubhouseAwards'> {
 }
+export interface UpdatePubUserIdPlayerModel extends Pick<PlayerModel, 'pubUserId'> {
+}
 
 export type UpdatePlayerCourseFlags = Pick<PlayerModel, 'courseStatus' | 'allowWebAccess' | 'playerType'>;

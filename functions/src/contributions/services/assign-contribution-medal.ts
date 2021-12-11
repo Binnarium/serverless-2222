@@ -3,7 +3,7 @@ import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import * as https from "https";
 import fetch from "node-fetch";
-import { PlayerModel } from "../../players/models/player.model";
+import { PlayerModel, UpdatePubUserIdPlayerModel } from "../../players/models/player.model";
 import { FirestoreInstance } from "../../utils/configuration";
 import { ContributionModel } from "../models/contribution.model";
 
@@ -13,7 +13,7 @@ const agent = new https.Agent({
 // every 20 minutes get a contribution that has not been assigned yet and assign it to the owner
 // 
 // query only contribution that has not being assigned yet, and limit to 10 each run
-export const CONTRIBUTIONS_assignPlayerMissingContributions = functions.pubsub.schedule('*/20 * * * *')
+export const CONTRIBUTIONS_assignPlayerMissingContributions = functions.runWith({ timeoutSeconds: 540 }).pubsub.schedule('*/30 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
@@ -21,7 +21,7 @@ export const CONTRIBUTIONS_assignPlayerMissingContributions = functions.pubsub.s
         const unAwardedContributionsQuery = FirestoreInstance
             .collection('contributions')
             .where(<keyof ContributionModel>'awardedToUid', '==', <ContributionModel['awardedToUid']>null)
-            .limit(10) as firestore.Query<ContributionModel>;
+            .limit(200) as firestore.Query<ContributionModel>;
 
         const unAwardedContributions = await unAwardedContributionsQuery.get();
 
@@ -55,7 +55,11 @@ export const CONTRIBUTIONS_assignContributionOnCreate = functions.firestore
     });
 
 
-async function awardContribution(batch: firestore.WriteBatch, contribution: ContributionModel, contributionRef: firestore.DocumentReference<ContributionModel>) {
+async function awardContribution(
+    batch: firestore.WriteBatch,
+    contribution: ContributionModel,
+    contributionRef: firestore.DocumentReference<ContributionModel>,
+) {
 
     /// search for an existing player with the pubUserId;
     /// if found assign the medal and update state of contribution
@@ -67,10 +71,11 @@ async function awardContribution(batch: firestore.WriteBatch, contribution: Cont
     const searchResults = await findPlayerWithPubPlayerIdQuery.get();
 
     /// found a player
+    /// assign that player the awardedToUid prop
+    /// and finish the function
     if (searchResults.docs.length > 0) {
         /// found coincidence
         const foundPlayerSnap = searchResults.docs[0];
-        console.log(`ref ${foundPlayerSnap.ref}`);
         const foundPlayer = foundPlayerSnap.exists ? foundPlayerSnap.data() : null;
 
         if (!foundPlayer) {
@@ -87,7 +92,6 @@ async function awardContribution(batch: firestore.WriteBatch, contribution: Cont
     /// search for a 2222 code in the user biography, if found update 
     /// player with pubUserId, assign medal and update state of contribution
     else {
-        console.log('Searching 2222 code')
         const page = await fetch(`https://pubpub.org/user/${contribution.pubUserSlug}`, { agent });
         const html = await page.text();
         const $ = cheerio.load(html);
@@ -97,10 +101,11 @@ async function awardContribution(batch: firestore.WriteBatch, contribution: Cont
         const bio: string = viewData?.userData?.bio ?? null;
 
         if (!bio) {
-            console.error(`no page data found or bio of https://pubpub.org/user/${contribution.pubUserSlug}`);
+            console.error(`no bio found for https://lab-movil-2222.pubpub.org/user/${contribution.pubUserSlug}`);
             return;
         }
 
+        //// found bio, then search for code
         const find2222CodeRegExp = RegExp(/\bC2222-.[0-9a-zA-Z]*\b/);
         const code = find2222CodeRegExp.exec(bio)?.[0];
         const playerPubCode = code?.split('-')[1];
@@ -127,13 +132,14 @@ async function awardContribution(batch: firestore.WriteBatch, contribution: Cont
             }
 
             /// update player with pubcode
-            batch.update(foundPlayerSnap.ref, <PlayerModel>{ pubUserId: contribution.pubUserId, });
+            batch.update(foundPlayerSnap.ref, <UpdatePubUserIdPlayerModel>{ pubUserId: contribution.pubUserId, });
 
             /// update contribution with awarded status
             batch.update(contributionRef, <ContributionModel>{ awardedToUid: foundPlayer.uid, });
         }
-        /// no players found, return prematurely, dont save nothing
+        /// no players found with code, return prematurely, dont save nothing
         else {
+            console.error(`no player with code ${playerPubCode} for https://lab-movil-2222.pubpub.org/user/${contribution.pubUserSlug}`);
             return;
         }
     }

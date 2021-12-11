@@ -3,6 +3,7 @@ import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import * as https from "https";
 import fetch from "node-fetch";
+import { UpdatePubUserIdPlayerModel } from "../../players/models/player.model";
 import { FirestoreInstance } from "../../utils/configuration";
 import { CollectionWatcher } from "../models/collection-watcher.model";
 import { PubWatcher } from "../models/pub-watcher.model";
@@ -39,6 +40,21 @@ export const CONTRIBUTIONS_updatePubWatchersFromProfile = functions.https.onCall
         console.error(`no page data found ${profileUrl}`);
         return;
     }
+
+
+    /// assign pub user id to player
+    try {
+
+        const playerRef = FirestoreInstance.collection('players').doc(playerUid);
+        const updateData: UpdatePubUserIdPlayerModel = {
+            pubUserId: userData.id ?? null,
+        };
+
+        await playerRef.update(updateData);
+    } catch (error) {
+
+    }
+
 
     if (!userData?.attributions) {
         console.error(`no pubs data found ${profileUrl}`);
@@ -101,7 +117,6 @@ export const CONTRIBUTIONS_updatePubWatchersFromProfile = functions.https.onCall
             pubId: pub.id,
             lastActivity: null, /// since first time default is null
         };
-        console.log({ data });
         pubsWatchersCreated++;
         batch.set(ref, data);
     });
