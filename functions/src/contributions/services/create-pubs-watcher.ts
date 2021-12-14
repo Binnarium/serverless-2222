@@ -17,6 +17,7 @@ const agent = new https.Agent({
  * every collection is queried after 15 hours each
  * 10 cities * 3 collections / city = 30 collections
  * the query runs every 30 mins, thats, 48 times in a day
+ * query 2 collections every time 
  */
 export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
     .onRun(async (context) => {
@@ -28,7 +29,7 @@ export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('*/30 *
             .doc('_configuration_')
             .collection('collection-watchers')
             .orderBy(<keyof CollectionWatcher>'scrapedAt', 'asc')
-            .limit(1) as firestore.Query<CollectionWatcher>;
+            .limit(2) as firestore.Query<CollectionWatcher>;
 
         const { docs } = await query.get();
 
