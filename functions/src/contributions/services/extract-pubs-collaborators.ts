@@ -30,7 +30,7 @@ export const CONTRIBUTIONS_extractPubCollaborators = functions.runWith({ timeout
             .doc('_configuration_')
             .collection('pubs-watchers')
             .orderBy(<keyof PubWatcher>'scrapedAt', 'asc')
-            .limit(25) as firestore.Query<PubWatcher>;
+            .limit(50) as firestore.Query<PubWatcher>;
 
         const { docs } = await query.get();
 

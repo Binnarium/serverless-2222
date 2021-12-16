@@ -32,7 +32,7 @@ export const PLAYER_exportPlayers = functions.runWith({ timeoutSeconds: 540 }).h
         const data = [headers, ...docsData];
         const csv = data.map(row => row.join(separator)).join(`${separator}\n`);
 
-        res.type('application/pdf')
+        res.type('application/csv; charset=utf-8')
             .header('Content-Disposition', 'attachment; filename="jugadores.csv"')
             .send(csv);
 
