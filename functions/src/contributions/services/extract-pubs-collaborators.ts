@@ -12,15 +12,12 @@ const agent = new https.Agent({
     rejectUnauthorized: false
 });
 
-/// TODO: extract on pub create
-
-
 /**
  * scrap pub and obtain all collaborators, contributors, and any kind of collaboration
  * 
  * runs every 10 minutes, and scraps 5 every 20 mins
  */
-export const CONTRIBUTIONS_extractPubCollaborators = functions.runWith({ timeoutSeconds: 540 }).pubsub.schedule('*/30 * * * *')
+export const CONTRIBUTIONS_extractPubCollaborators = functions.runWith({ timeoutSeconds: 540 }).pubsub.schedule('*/15 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
@@ -30,57 +27,67 @@ export const CONTRIBUTIONS_extractPubCollaborators = functions.runWith({ timeout
             .doc('_configuration_')
             .collection('pubs-watchers')
             .orderBy(<keyof PubWatcher>'scrapedAt', 'asc')
-            .limit(50) as firestore.Query<PubWatcher>;
+            .limit(25) as firestore.Query<PubWatcher>;
 
         const { docs } = await query.get();
 
-        const tasks = docs.map(async pubWatcherRef => {
-            /// update scraped date
-            batch.update(pubWatcherRef.ref, <UpdatePubWatcherDate>{ scrapedAt: firestore.FieldValue.serverTimestamp() });
-
-            const pubWatcherData: PubWatcher | null = pubWatcherRef.data() ?? null;
-
-            if (!pubWatcherData) {
-                console.error(`empty pub watcher doc ${pubWatcherRef.ref.path}`);
-                return;
-            }
-
-            /// scrap the url for all pubs
-            const page = await fetch(pubWatcherData.pubUrl, { agent });
-            const html = await page.text();
-            const $ = cheerio.load(html);
-            const viewData = JSON.parse($('#view-data').attr('data-json') ?? '{}')
-
-            // validate view data exists
-            const pubData = viewData?.pubData ?? null;
-
-            if (!pubData) {
-                console.error(`no page data found ${pubWatcherData.pubUrl}`);
-                return;
-            }
-
-            /// scrap collaboration only when document has changed
-            batch.update(pubWatcherRef.ref, <UpdatePubWatcherDate>{ lastActivity: pubData.updatedAt });
-            // if (pubWatcherData.lastActivity === pubData.updatedAt)
-            //     return;
-
-            /// save attributions
-            if (!!pubData.attributions)
-                await saveAttributions(batch, pubWatcherData, pubData.attributions);
-
-            /// save editions to the doc
-            if (!!pubData.reviews)
-                await saveReviews(batch, pubWatcherData, pubData.reviews);
-
-            /// save discussions to the doc
-            if (!!pubData.discussions)
-                await saveDiscussions(batch, pubWatcherData, pubData.discussions);
-
-            /// save discusiones
-        });
+        const tasks = docs.map(async pubWatcherRef => await extractCollaborations(batch, pubWatcherRef));
         await Promise.all(tasks);
         await batch.commit();
     });
+
+export const CONTRIBUTIONS_extractPubCollaboratorsOnCreate = functions
+    .firestore.document('contributions/_configuration_/pubs-watchers/{pubId}')
+    .onCreate(async (snapshot, context) => {
+        const batch = FirestoreInstance.batch();
+        const pubWatcherRef = snapshot as firestore.QueryDocumentSnapshot<PubWatcher>;
+        await extractCollaborations(batch, pubWatcherRef);
+        await batch.commit();
+        console.log(`success: ${snapshot.id}`)
+    });
+
+async function extractCollaborations(batch: firestore.WriteBatch, pubWatcherRef: firestore.QueryDocumentSnapshot<PubWatcher>) {
+    /// update scraped date
+    batch.update(pubWatcherRef.ref, <UpdatePubWatcherDate>{ scrapedAt: firestore.FieldValue.serverTimestamp() });
+
+    const pubWatcherData: PubWatcher | null = pubWatcherRef.data() ?? null;
+
+    if (!pubWatcherData) {
+        console.error(`empty pub watcher doc ${pubWatcherRef.ref.path}`);
+        return;
+    }
+
+    /// scrap the url for all pubs
+    const page = await fetch(pubWatcherData.pubUrl, { agent });
+    const html = await page.text();
+    const $ = cheerio.load(html);
+    const viewData = JSON.parse($('#view-data').attr('data-json') ?? '{}')
+
+    // validate view data exists
+    const pubData = viewData?.pubData ?? null;
+
+    if (!pubData) {
+        console.error(`no page data found ${pubWatcherData.pubUrl}`);
+        return;
+    }
+
+    /// scrap collaboration only when document has changed
+    batch.update(pubWatcherRef.ref, <UpdatePubWatcherDate>{ lastActivity: pubData.updatedAt });
+    // if (pubWatcherData.lastActivity === pubData.updatedAt)
+    //     return;
+
+    /// save attributions
+    if (!!pubData.attributions)
+        await saveAttributions(batch, pubWatcherData, pubData.attributions);
+
+    /// save editions to the doc
+    if (!!pubData.reviews)
+        await saveReviews(batch, pubWatcherData, pubData.reviews);
+
+    /// save discussions to the doc
+    if (!!pubData.discussions)
+        await saveDiscussions(batch, pubWatcherData, pubData.discussions);
+}
 
 async function saveAttributions(batch: firestore.WriteBatch, pubWatcherData: PubWatcher, attributions: Array<any>): Promise<void> {
     const tasks = attributions.map(async (attribution) => {
