@@ -15,6 +15,7 @@ export interface PlayerModel {
     projectAwards?: firestore.FieldValue | Array<MedalModel>;
     contributionsAwards?: firestore.FieldValue | Array<MedalModel>;
     clubhouseAwards?: firestore.FieldValue | Array<MedalModel>;
+    workshopAwards?: firestore.FieldValue | Array<MedalModel>;
 
     /// flags
     courseStatus?: string | null;

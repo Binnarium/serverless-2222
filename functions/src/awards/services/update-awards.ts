@@ -5,6 +5,7 @@ import { MedalModel, PlayerModel } from "../../players/models/player.model";
 import { FirestoreInstance } from "../../utils/configuration";
 import { MarathonMedal } from "../models/marathon-medal.model";
 import { ProjectModel } from "../models/project-award.model";
+import { WorkshopMedal } from "../models/workshop-medal.model ";
 
 /**
  * backup function to recalculate the awards obtained by the player
@@ -72,6 +73,24 @@ export const AWARDS_updateMedalsOnMarathonDelete = functions.firestore.document(
     if (!!medal?.awardedToUid)
         await _CalculateAwardsAndSave(medal.awardedToUid);
 });
+
+export const AWARDS_updateMedalsOnWorkshopCreate = functions.firestore.document('players/{uid}/workshop-awards/{medalId}').onCreate(async (workshopMedal, context) => {
+    const medal: WorkshopMedal | null = workshopMedal.exists ? workshopMedal.data() as WorkshopMedal : null;
+
+    if (!!medal?.awardedToUid)
+        await _CalculateAwardsAndSave(medal.awardedToUid);
+});
+
+/**
+ * when a new medal file is uploaded, then update the medals of the player
+ */
+export const AWARDS_updateMedalsOnWorkshopDelete = functions.firestore.document('players/{uid}/workshop-awards/{medalId}').onDelete(async (workshopMedal, context) => {
+    const medal: WorkshopMedal | null = workshopMedal.exists ? workshopMedal.data() as WorkshopMedal : null;
+
+    if (!!medal?.awardedToUid)
+        await _CalculateAwardsAndSave(medal.awardedToUid);
+});
+
 /**
  * when a new project file is uploaded, then update the medals of the player
  */
@@ -96,6 +115,7 @@ async function _CalculateAwardsAndSave(uid: string) {
     const clubhouseAwards = await _CalculateClubhouseAwards(uid);
     const contributionsAwards = await _CalculateContributionsAwards(uid);
     const marathonAwards = await _CalculateMarathonAwards(uid);
+    const workshopAwards = await _CalculateWorkshopAwards(uid);
 
     /// update the obtained medals & counter
     const updatePayload: Partial<PlayerModel> = {
@@ -104,6 +124,7 @@ async function _CalculateAwardsAndSave(uid: string) {
         projectAwards,
         clubhouseAwards,
         contributionsAwards,
+        workshopAwards
     };
 
     const playerRef = FirestoreInstance.collection('players').doc(uid);
@@ -212,5 +233,16 @@ async function _CalculateMarathonAwards(uid: string): Promise<MedalModel[]> {
     const { docs: medals } = await contributionsQuery.get();
 
     return medals.map(snap => snap.exists ? snap.data() as MarathonMedal : null)
+        .map(medal => (<MedalModel>{ cityId: null, obtained: true, count: 1 }))
+}
+
+async function _CalculateWorkshopAwards(uid: string): Promise<MedalModel[]> {
+
+    const contributionsQuery = FirestoreInstance.collectionGroup('workshop-awards')
+        .where(<keyof WorkshopMedal>'awardedToUid', '==', uid);
+
+    const { docs: medals } = await contributionsQuery.get();
+
+    return medals.map(snap => snap.exists ? snap.data() as WorkshopMedal : null)
         .map(medal => (<MedalModel>{ cityId: null, obtained: true, count: 1 }))
 }
