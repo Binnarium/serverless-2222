@@ -17,7 +17,7 @@ const agent = new https.Agent({
  * 
  * runs every 10 minutes, and scraps 5 every 20 mins
  */
-export const CONTRIBUTIONS_extractPubCollaborators = functions.runWith({ timeoutSeconds: 540 }).pubsub.schedule('*/15 * * * *')
+export const CONTRIBUTIONS_extractPubCollaborators = functions.runWith({ timeoutSeconds: 540 }).pubsub.schedule('*/30 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 

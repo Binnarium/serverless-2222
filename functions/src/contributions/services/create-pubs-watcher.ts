@@ -19,7 +19,7 @@ const agent = new https.Agent({
  * the query runs every 30 mins, thats, 48 times in a day
  * query 2 collections every time 
  */
-export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('* * * * *')
+export const CONTRIBUTIONS_updatePubWatchers = functions.pubsub.schedule('*/30 * * * *')
     .onRun(async (context) => {
         const batch = FirestoreInstance.batch();
 
