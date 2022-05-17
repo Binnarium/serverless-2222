@@ -7,12 +7,14 @@ import { PlayerModel } from "../models/player.model";
 export const PLAYER_exportPlayers = functions.runWith({ timeoutSeconds: 540 }).https
     .onRequest(async (_, res) => {
         const playerRef = FirestoreInstance.collection('players')
-            .where(<keyof PlayerModel>'playerType', '==', 'PLAYER#2000');
+            .where(<keyof PlayerModel>'playerType', '==', 'PLAYER#2000')
+            .where(<keyof PlayerModel>'courseVersion', '==', 'COURSE#2');
 
         const snaps = await playerRef.get();
         const players = snaps.docs.map(snap => snap.data() as PlayerModel);
 
-        const headers = ['Código', 'Nombre', 'Correo', 'Grupo', 'Uso Código PubPub', 'Wiki', 'Clubhouse', 'Proyecto', 'Maraton', 'Taller de Ideación', 'Id de Grupo'];
+        // const headers = ['Código', 'Nombre', 'Correo', 'Grupo', 'Uso Código PubPub', 'Wiki', 'Clubhouse', 'Proyecto', 'Maraton', 'Taller de Ideación', 'Id de Grupo'];
+        const headers = ['Código', 'Nombre', 'Correo', 'Grupo', 'Clubhouse', 'Proyecto', 'Maraton', 'Taller de Ideación', 'Id de Grupo'];
         const docsData = players.map(
             ({ displayName, email, uid, pubUserId, courseStatus, projectAwards, marathonAwards, workshopAwards, clubhouseAwards, contributionsAwards, groupId }) =>
             ([
@@ -20,8 +22,8 @@ export const PLAYER_exportPlayers = functions.runWith({ timeoutSeconds: 540 }).h
                 displayName,
                 email,
                 courseStatus,
-                !!pubUserId ? 'SI' : 'NO',
-                (<[] | null>contributionsAwards)?.length ?? 0,
+                // !!pubUserId ? 'SI' : 'NO',
+                // (<[] | null>contributionsAwards)?.length ?? 0,
                 (<[] | null>clubhouseAwards)?.length ?? 0,
                 (<[] | null>projectAwards)?.length ?? 0,
                 (<[] | null>marathonAwards)?.length ?? 0,

@@ -2,7 +2,7 @@ import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { PlayerModel } from "../../players/models/player.model";
 import { UpdatePlayerGroupModel } from "../../players/models/update-player-group.model";
-import { FirestoreInstance } from "../../utils/configuration";
+import { COURSE_VERSION, FirestoreInstance } from "../../utils/configuration";
 import { randomIdGenerator } from "../../utils/random-id-generator";
 import { ChatParticipantModel } from "../model/chat-participant.model";
 import { ChatModel } from "../model/chat.model";
@@ -60,6 +60,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
     // add player to group chat
     const chatsSnapshot = await FirestoreInstance.collection('chats')
         .where(<keyof ChatModel>'participantsCompleted', '==', false)
+        .where(<keyof ChatModel>'courseVersion', '==', COURSE_VERSION)
         .where(<keyof ChatModel>'id', '!=', 'general')
         .limit(1)
         .get();
@@ -96,6 +97,7 @@ async function AddPlayerToGeneralAndSpecificChat(player: PlayerModel): Promise<v
             lastActivity: firestore.FieldValue.serverTimestamp(),
             lastMessage: null,
             name: null,
+            courseVersion: COURSE_VERSION,
             participantsCompleted: false,
         };
         const newChatDoc = FirestoreInstance.collection('chats').doc(chatId);
