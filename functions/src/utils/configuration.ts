@@ -4,6 +4,7 @@ import { MeiliSearch } from 'meilisearch';
 
 const app = admin.initializeApp();
 
+export const AuthInstance = app.auth();
 export const FirestoreInstance = app.firestore();
 export const DatabaseInstance = app.database();
 export const StorageInstance = app.storage();
