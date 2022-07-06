@@ -13,6 +13,7 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
     .document('players/{uid}/clubhouse/{id}')
     .onCreate(async (snapshot, context) => {
         try {
+            const batch = FirestoreInstance.batch();
             const { clubhouseUrl, cityId, id, uploaderId } = <CreatedClubhouseModel>snapshot.data();
 
             /// validate clubhouse url does not already exists
@@ -20,11 +21,16 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
                 .where(<keyof CreatedClubhouseModel>'clubhouseUrl', '==', clubhouseUrl);
             const searchResults = await searchIfClubhouseExistsQuery.get();
 
-            /// since there will be at least one, them when there are more than one it is duplicated
+            /// Since the url has been pasted again, delete old one for new one
             if (searchResults.docs.length > 1) {
-                console.log('already exists')
-                await snapshot.ref.delete();
-                return;
+                console.log('already exists, deleting old one')
+                for (const doc of searchResults.docs) {
+                    // dont update the current one
+                    if (id === doc.id)
+                        continue;
+
+                    // batch.delete(doc.ref);
+                }
             }
 
             const page = await fetch(clubhouseUrl);
@@ -33,9 +39,9 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
 
             // obtain date from raw html
             const coincidence = /(const dt =).*/.exec(html)?.[0] ?? null;
-            const rawDate = coincidence?.split('"')[1] ?? null;
-            if (!rawDate)
-                throw Error('Invalid date');
+            let rawDate = coincidence?.split('"')[1] ?? null;
+            // if (!rawDate)
+            //     rawDate = new Date().toISOString();
 
             // update url
             const updatedClubhouseUrl =
@@ -59,11 +65,10 @@ export const CLUBHOUSE_obtainClubhouseInformation = functions.firestore
                 name: $('title').first().text().split('-')[0].trim(),
                 clubhouseId: updatedClubhouseUrl.split('/')[updatedClubhouseUrl.split('/').length - 1] ?? null,
                 uploaderId,
-                date: new Date(rawDate),
+                date: rawDate ? new Date(rawDate) : new Date(),
                 scraped: firestore.FieldValue.serverTimestamp(),
             };
 
-            const batch = FirestoreInstance.batch();
             // update document data
             batch.update(snapshot.ref, clubhouse);
             console.log('updating', JSON.stringify(clubhouse));

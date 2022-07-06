@@ -39,7 +39,7 @@ export const AWARDS_updateMedalsOnContributionUpdate = functions.firestore.docum
 /**
  * when a new project file is uploaded, then update the medals of the player
  */
-export const AWARDS_updateMedalsOnClubhouseCreate = functions.firestore.document('players/{uid}/clubhouse/{projectId}').onCreate(async (_, context) => {
+export const AWARDS_updateMedalsOnClubhouseCreate = functions.firestore.document('players/{uid}/clubhouse/{projectId}').onWrite(async (_, context) => {
     const { uid } = context.params;
 
     await _CalculateAwardsAndSave(uid);
@@ -160,7 +160,8 @@ async function _CalculateProjectAwards(uid: string): Promise<MedalModel[]> {
         );
 
     return Object.entries(groups)
-        .map(([cityId, { length }]) => (<MedalModel>{ cityId: cityId, obtained: length > 0, count: length, }));
+        .map(([cityId, { length }]) => (<MedalModel>{ cityId: cityId, obtained: length > 0, count: length, }))
+        .filter(medal => (medal.count ?? 0) > 0);
 }
 
 async function _CalculateClubhouseAwards(uid: string): Promise<MedalModel[]> {
@@ -192,7 +193,8 @@ async function _CalculateClubhouseAwards(uid: string): Promise<MedalModel[]> {
         );
 
     return Object.entries(groups)
-        .map(([cityId, { length }]) => (<MedalModel>{ cityId: cityId, obtained: length > 0, count: length, }));
+        .map(([cityId, { length }]) => (<MedalModel>{ cityId: cityId, obtained: length > 0, count: length, }))
+        .filter(medal => (medal.count ?? 0) > 0);
 }
 
 async function _CalculateContributionsAwards(uid: string): Promise<MedalModel[]> {
