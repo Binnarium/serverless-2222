@@ -10,6 +10,7 @@ export interface ChatModel {
     name?: string | null;
     lastActivity?: firestore.Timestamp | firestore.FieldValue | null;
     lastMessage?: MessageModel | null;
+    courseVersion?: string | null;
     participants: firestore.FieldValue | Array<ChatParticipantModel>;
     participantsUids: firestore.FieldValue | Array<string>;
     participantsCompleted?: boolean;

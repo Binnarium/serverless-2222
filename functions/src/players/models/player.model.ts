@@ -21,6 +21,7 @@ export interface PlayerModel {
     courseStatus?: string | null;
     allowWebAccess?: boolean | null;
     playerType?: string | null;
+    courseVersion?: string | null;
 }
 
 export interface MedalModel {

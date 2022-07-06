@@ -15,3 +15,5 @@ export const MeiliClient = new MeiliSearch({
     host: functions.config().meilisearch.host,
     apiKey: functions.config().meilisearch.api_key,
 });
+
+export const COURSE_VERSION = 'COURSE#2';
