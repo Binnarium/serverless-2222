@@ -23,7 +23,6 @@ export const CHAT_movePlayerChat = functions.https.onCall(async (data, context) 
     if (!currentPlayer.uid)
         throw new Error('Player or group not found')
 
-
     ////// get new chat
     const newChatRef = FirestoreInstance.collection('chats').doc(newGroupId);
     const newChatSnap = await newChatRef.get();
@@ -35,11 +34,11 @@ export const CHAT_movePlayerChat = functions.https.onCall(async (data, context) 
     ///// here lays the magic
     ///// I mean, here we remove the player from the old group, and add it to the new chat
     const batch = FirestoreInstance.batch();
-
+    let oldGroup = null;
     if (!!currentPlayer.groupId) {
         ////// get old chat ref
         const oldChatRef = FirestoreInstance.collection('chats').doc(currentPlayer.groupId);
-
+        oldGroup = currentPlayer.groupId;
         /// remove from old chat
         const removeCurrentPlayer: Partial<ChatModel> = {
             participants: firestore.FieldValue.arrayRemove(<ChatParticipantModel>{
@@ -66,7 +65,11 @@ export const CHAT_movePlayerChat = functions.https.onCall(async (data, context) 
     batch.update(newChatRef, addCurrentPlayer);
 
     // update player was added to chats
-    const playerUpdate: UpdatePlayerGroupModel = { addedToChat: true, groupId: newGroupId };
+    const playerUpdate: UpdatePlayerGroupModel = {
+        addedToChat: true,
+        groupId: newGroupId,
+        oldGroups: firestore.FieldValue.arrayUnion(oldGroup),
+    };
 
     batch.update(currentPlayerRef, playerUpdate);
 

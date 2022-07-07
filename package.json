@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "firebase": "firebase" 
+  },
+  "dependencies": {
+    "firebase-tools": "^11.2.0"
+  }
+}

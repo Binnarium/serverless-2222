@@ -20,7 +20,6 @@ export const PLAYER_exportPlayers = functions.runWith({ timeoutSeconds: 540 }).h
                 uid,
                 displayName,
                 email,
-                courseStatus,
                 // !!pubUserId ? 'SI' : 'NO',
                 // (<[] | null>contributionsAwards)?.length ?? 0,
                 (<[] | null>clubhouseAwards)?.length ?? 0,
