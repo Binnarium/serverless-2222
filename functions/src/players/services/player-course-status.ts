@@ -16,7 +16,7 @@ export const PLAYER_updatePlayerCourseFlags = functions.firestore
 
         /// update player information
         const updateData: UpdatePlayerCourseFlags = {
-            allowWebAccess: false,
+            allowWebAccess: true,
             courseStatus,
             playerType: playerType ?? 'PLAYER#INVITED',
         };

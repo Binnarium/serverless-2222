@@ -5,6 +5,7 @@ export interface PlayerModel {
     email: string;
     uid: string;
     pubCode: string;
+    identification: string;
     pubUserId?: string | null;
     addedToChat?: boolean | null;
     groupId?: string | null;
@@ -36,3 +37,4 @@ export interface UpdatePubUserIdPlayerModel extends Pick<PlayerModel, 'pubUserId
 }
 
 export type UpdatePlayerCourseFlags = Pick<PlayerModel, 'courseStatus' | 'allowWebAccess' | 'playerType'>;
+export type UpdatePlayerIdentification = Pick<PlayerModel, 'identification'>;

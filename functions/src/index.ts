@@ -19,6 +19,7 @@ export * from './players/services/export-players';
 export * from './players/services/index-players-search';
 export * from './players/services/player-course-status';
 export * from './players/services/reset-password';
+export * from './players/services/update-player-identification';
 export * from './project/services/upload-project';
 export * from './report-problems/services/report-problem';
 export * from './video/services/update-videos';
